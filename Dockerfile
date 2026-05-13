@@ -22,7 +22,7 @@ RUN composer install --optimize-autoloader --no-dev
 # Cache Laravel
 RUN php artisan key:generate --force
 RUN php artisan config:cache
-RUN php artisan route:cache
+# RUN php artisan route:cache
 RUN php artisan view:cache
 
 CMD php artisan serve --host=0.0.0.0 --port=10000
