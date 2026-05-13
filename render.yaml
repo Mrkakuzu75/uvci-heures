@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: uvci-heures
+    runtime: image
+    repo: https://github.com/Mrkakuzu75/uvci-heures
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        value: base64:l2jEYpAmPohXyobBZucU/GEpPI5kqNvd00lgSS3Cm0Q=
+      - key: APP_URL
+        value: https://uvci-heures.onrender.com
