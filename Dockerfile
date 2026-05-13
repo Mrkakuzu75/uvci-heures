@@ -1,30 +1,27 @@
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
 RUN apt-get update && apt-get install -y \
     nginx \
-    libpq-dev \
-    zip \
-    unzip \
-    git \
+    php8.2-fpm \
+    php8.2-mysql \
+    php8.2-pgsql \
+    php8.2-sqlite \
+    php8.2-mbstring \
+    php8.2-xml \
+    php8.2-curl \
+    php8.2-zip \
     curl \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql
+    git \
+    unzip
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-COPY --chown=www-data:www-data . /var/www/html
 WORKDIR /var/www/html
+COPY . .
 
 RUN composer install --optimize-autoloader --no-dev
 
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+RUN php artisan key:generate
+RUN php artisan config:cache
 
-COPY nginx.conf /etc/nginx/sites-available/default
-
-EXPOSE 80
-
-CMD php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache && \
-    service nginx start && \
-    php-fpm
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=10000"]
