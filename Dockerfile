@@ -1,19 +1,30 @@
-FROM richarvey/nginx-php-fpm:latest
+FROM php:8.2-fpm
 
-COPY . .
+RUN apt-get update && apt-get install -y \
+    nginx \
+    libpq-dev \
+    zip \
+    unzip \
+    git \
+    curl \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql
 
-ENV SKIP_COMPOSER 0
-ENV WEBROOT /var/www/html/public
-ENV PHP_ERRORS_STDERR 1
-ENV RUN_SCRIPTS 1
-ENV REAL_IP_HEADER 1
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-ENV APP_ENV production
-ENV APP_DEBUG false
-ENV LOG_CHANNEL stderr
+COPY --chown=www-data:www-data . /var/www/html
+WORKDIR /var/www/html
 
-ENV COMPOSER_ALLOW_SUPERUSER 1
+RUN composer install --optimize-autoloader --no-dev
 
-# COPY .env .env
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-CMD ["/start.sh"]
+COPY nginx.conf /etc/nginx/sites-available/default
+
+EXPOSE 80
+
+CMD php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache && \
+    service nginx start && \
+    php-fpm
