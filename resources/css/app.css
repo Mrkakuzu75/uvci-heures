@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { font-family: 'DM Sans', sans-serif; }
+}
+
+@layer components {
+  .nav-active {
+    @apply bg-green/15 text-green !important;
+  }
+  .nav-active svg {
+    @apply text-green !important;
+  }
+  .btn-primary {
+    @apply px-5 py-2.5 bg-navy text-white font-semibold text-sm rounded-xl hover:bg-navy-mid transition-colors;
+    font-family: 'Syne', sans-serif;
+  }
+  .btn-green {
+    @apply px-5 py-2.5 bg-green text-navy font-semibold text-sm rounded-xl hover:bg-green-dark transition-colors;
+    font-family: 'Syne', sans-serif;
+  }
+  .input-base {
+    @apply w-full px-3.5 py-3 border-[1.5px] border-[#E2E8F0] rounded-[10px] text-sm bg-[#FAFAFA]
+           focus:bg-white focus:border-green focus:ring-2 focus:ring-green/10 outline-none transition-all
+           placeholder-[#B0BAC7];
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-[#E2E8F0];
+  }
+  .badge-green  { @apply px-2.5 py-1 rounded-full text-[11px] font-medium bg-green-light text-green-dark; }
+  .badge-blue   { @apply px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-600; }
+  .badge-orange { @apply px-2.5 py-1 rounded-full text-[11px] font-medium bg-orange/10 text-orange; }
+  .badge-purple { @apply px-2.5 py-1 rounded-full text-[11px] font-medium bg-purple-50 text-purple-600; }
+}
+
+/* Animated background shapes */
+@keyframes drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(40px, 30px) scale(1.1); }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(.8); }
+}
+.shape { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .12; }
+.shape-1 { width:600px;height:600px;background:#00C07F;top:-200px;left:-100px;animation:drift 12s ease-in-out infinite alternate; }
+.shape-2 { width:400px;height:400px;background:#FF6B35;bottom:-150px;right:-100px;animation:drift 12s ease-in-out infinite alternate;animation-delay:-4s; }
+.shape-3 { width:300px;height:300px;background:#4A90E2;top:40%;left:40%;animation:drift 12s ease-in-out infinite alternate;animation-delay:-8s; }
+.badge-dot { animation: blink 2s ease-in-out infinite; }
