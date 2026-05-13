@@ -7,9 +7,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 WORKDIR /var/www/html
 COPY . .
 
-# Créer le fichier .env directement
+# Créer le fichier .env
 RUN echo "APP_ENV=production" > .env && \
-    echo "APP_DEBUG=false" >> .env && \
+    echo "APP_DEBUG=true" >> .env && \
     echo "APP_KEY=base64:l2jEYpAmPohXyobBZucU/GEpPI5kqNvd00lgSS3Cm0Q=" >> .env && \
     echo "APP_URL=https://uvci-heures.onrender.com" >> .env && \
     echo "DB_CONNECTION=sqlite" >> .env && \
@@ -19,6 +19,10 @@ RUN echo "APP_ENV=production" > .env && \
 
 RUN composer install --optimize-autoloader --no-dev
 
+# Cache Laravel
 RUN php artisan key:generate --force
+RUN php artisan config:cache
+RUN php artisan route:cache
+RUN php artisan view:cache
 
 CMD php artisan serve --host=0.0.0.0 --port=10000
