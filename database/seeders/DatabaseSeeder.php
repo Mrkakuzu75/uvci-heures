@@ -17,9 +17,11 @@ class DatabaseSeeder extends Seeder
         // ══════════════════════════════════════════════════════════
         // 1. GRADES
         // ══════════════════════════════════════════════════════════
+        // Grades officiels du cahier des charges UVCI
         foreach ([
-            'Assistant', 'Maître-Assistant',
-            'Maître de Conférences', 'Professeur Titulaire', 'Chargé de Cours',
+            'Assistant',
+            'Maître-Assistant',
+            'Professeur',
         ] as $g) Grade::firstOrCreate(['lib_grd' => $g]);
 
         // ══════════════════════════════════════════════════════════
@@ -40,7 +42,7 @@ class DatabaseSeeder extends Seeder
         ] as $d) Departement::firstOrCreate(['lib_dep' => $d]);
 
         // ══════════════════════════════════════════════════════════
-        // 4. SPÉCIALITÉS UVCI
+        // 4. SPÉCIALITÉS OFFICIELLES UVCI
         // ══════════════════════════════════════════════════════════
         $specsData = [
             'DAS' => 'DAS — Développeur d\'Applications et e-Services',
@@ -86,7 +88,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // ══════════════════════════════════════════════════════════
-        // 6. TYPES DE RESSOURCES PÉDAGOGIQUES
+        // 6. TYPES DE RESSOURCES PÉDAGOGIQUES (modèle UVCI)
         // ══════════════════════════════════════════════════════════
         $typRessData = [
             'TXT'  => 'Contenu textuel',
@@ -148,10 +150,10 @@ class DatabaseSeeder extends Seeder
         // ══════════════════════════════════════════════════════════
         // 10. ENSEIGNANTS
         // ══════════════════════════════════════════════════════════
-        $gMC = Grade::where('lib_grd','Maître de Conférences')->first();
+        $gMC = Grade::where('lib_grd','Professeur')->first();
         $gMA = Grade::where('lib_grd','Maître-Assistant')->first();
         $gAS = Grade::where('lib_grd','Assistant')->first();
-        $gCC = Grade::where('lib_grd','Chargé de Cours')->first();
+        $gCC = Grade::where('lib_grd','Assistant')->first();
         $sP  = Statut::where('lib_stat','Permanent')->first();
         $sV  = Statut::where('lib_stat','Vacataire')->first();
         $dep = Departement::where('lib_dep','like','%Informatique%')->first();

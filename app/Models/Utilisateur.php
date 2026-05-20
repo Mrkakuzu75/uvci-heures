@@ -15,13 +15,13 @@ class Utilisateur extends Authenticatable
     protected $fillable = ['login', 'mdp', 'email', 'role'];
     protected $hidden   = ['mdp'];
 
-    // ── Désactiver remember_token (colonne absente de la table) ──
+    // Désactiver remember_token (colonne absente)
     public function getRememberTokenName(): ?string
     {
-        return null; // empêche Laravel de chercher remember_token
+        return null;
     }
 
-    // ── Laravel Auth attend "password" — on redirige vers "mdp" ──
+    // Laravel Auth attend "password" — on pointe vers "mdp"
     public function getAuthPassword(): string
     {
         return $this->mdp;
@@ -38,6 +38,7 @@ class Utilisateur extends Authenticatable
     public function isSecretaire(): bool { return $this->role === 'secretaire'; }
     public function isEnseignant(): bool { return $this->role === 'enseignant'; }
 
+    // Redirection stricte après connexion
     public function redirectRoute(): string
     {
         return match($this->role) {
