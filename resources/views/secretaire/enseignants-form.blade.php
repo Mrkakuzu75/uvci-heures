@@ -1,138 +1,139 @@
-@extends('layouts.app')
-@section('title', $enseignant ? 'Modifier enseignant' : 'Ajouter un enseignant')
-@section('sidebar-role','Secrétaire Principal')
-@section('page-title', $enseignant ? 'Modifier l\'enseignant' : 'Ajouter un enseignant')
-@section('page-subtitle', $enseignant ? $enseignant->nom_complet : 'Remplissez les informations ci-dessous')
-
-@section('sidebar-nav')
-  <x-nav-item route="secretaire.dashboard"   label="Tableau de bord" icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-  <x-nav-item route="secretaire.enseignants" label="Enseignants"     icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-  <x-nav-item route="secretaire.cours"       label="Cours"           icon="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-  <x-nav-item route="secretaire.activites"   label="Activités"       icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-  <x-nav-item route="secretaire.paiements"   label="États de paiement" icon="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
-@endsection
+@extends('layouts.admin')
+@section('title', $enseignant ? 'Modifier un enseignant' : 'Nouvel enseignant')
 
 @section('content')
-<div style="max-width:580px;">
-  <form method="POST"
-    action="{{ $enseignant ? route('secretaire.enseignants.update',$enseignant) : route('secretaire.enseignants.store') }}"
-    class="card">
-    @csrf
-    @if($enseignant) @method('PUT') @endif
-
-    <div class="card-header">
-      <h3>{{ $enseignant ? 'Modifier les informations' : 'Nouvel enseignant' }}</h3>
+<div class="max-w-2xl mx-auto">
+    <!-- Bouton retour -->
+    <div class="mb-6">
+        <a href="{{ route('secretaire.enseignants') }}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Retour à la liste
+        </a>
     </div>
 
-    <div class="card-body" style="display:flex;flex-direction:column;gap:18px;">
+    <!-- Formulaire -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-gray-800">{{ $enseignant ? 'Modifier' : 'Créer' }} un enseignant</h3>
+        </div>
+        <div class="p-6">
+            <form method="POST" action="{{ $enseignant ? route('secretaire.enseignants.update', $enseignant) : route('secretaire.enseignants.store') }}">
+                @csrf
+                @if($enseignant) @method('PUT') @endif
 
-      {{-- Nom / Prénom --}}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div>
-          <label class="form-label">Prénom <span style="color:red">*</span></label>
-          <input type="text" name="pnom" value="{{ old('pnom',$enseignant?->pnom) }}"
-            class="form-input" placeholder="ex: Kouamé" required>
-          @error('pnom')<div class="form-error">{{ $message }}</div>@enderror
-        </div>
-        <div>
-          <label class="form-label">Nom <span style="color:red">*</span></label>
-          <input type="text" name="nom" value="{{ old('nom',$enseignant?->nom) }}"
-            class="form-input" placeholder="ex: KOFFI" required>
-          @error('nom')<div class="form-error">{{ $message }}</div>@enderror
-        </div>
-      </div>
+                <div class="space-y-4">
+                    <!-- Nom et Prénom sur 2 colonnes -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label text-sm font-medium text-gray-700 mb-1">Nom <span class="text-red-500">*</span></label>
+                            <input type="text" name="nom" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" 
+                                   value="{{ old('nom', $enseignant?->nom) }}" placeholder="KOUADIO" required autocomplete="off">
+                            @error('nom') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="form-label text-sm font-medium text-gray-700 mb-1">Prénom <span class="text-red-500">*</span></label>
+                            <input type="text" name="pnom" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" 
+                                   value="{{ old('pnom', $enseignant?->pnom) }}" placeholder="Jean" required autocomplete="off">
+                            @error('pnom') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
 
-      {{-- Téléphone --}}
-      <div>
-        <label class="form-label">Téléphone</label>
-        <input type="text" name="tel" value="{{ old('tel',$enseignant?->tel) }}"
-          class="form-input" placeholder="ex: 0700000000">
-      </div>
+                    <!-- Téléphone et Taux horaire -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                            <input type="tel" name="tel" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" 
+                                   value="{{ old('tel', $enseignant?->tel) }}" placeholder="07 58 12 34 56" autocomplete="off">
+                            @error('tel') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="form-label text-sm font-medium text-gray-700 mb-1">Taux horaire (FCFA/h) <span class="text-red-500">*</span></label>
+                            <input type="number" step="100" name="tx_horaire" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" 
+                                   value="{{ old('tx_horaire', $enseignant?->tx_horaire) }}" placeholder="5000" required autocomplete="off">
+                            @error('tx_horaire') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
 
-      {{-- Taux horaire --}}
-      <div>
-        <label class="form-label">Taux horaire (FCFA/h) <span style="color:red">*</span></label>
-        <input type="number" name="tx_horaire" value="{{ old('tx_horaire',$enseignant?->tx_horaire ?? 5000) }}"
-          class="form-input" min="0" step="100" required>
-        @error('tx_horaire')<div class="form-error">{{ $message }}</div>@enderror
-      </div>
+                    <!-- Grade, Statut, Département -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="form-label text-sm font-medium text-gray-700 mb-1">Grade <span class="text-red-500">*</span></label>
+                            <select name="id_grd" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" required>
+                                <option value="">Sélectionner</option>
+                                @foreach($grades as $grade)
+                                    <option value="{{ $grade->id_grd }}" {{ old('id_grd', $enseignant?->id_grd) == $grade->id_grd ? 'selected' : '' }}>
+                                        {{ $grade->lib_grd }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('id_grd') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="form-label text-sm font-medium text-gray-700 mb-1">Statut <span class="text-red-500">*</span></label>
+                            <select name="id_stat" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" required>
+                                <option value="">Sélectionner</option>
+                                @foreach($statuts as $statut)
+                                    <option value="{{ $statut->id_stat }}" {{ old('id_stat', $enseignant?->id_stat) == $statut->id_stat ? 'selected' : '' }}>
+                                        {{ $statut->lib_stat }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('id_stat') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="form-label text-sm font-medium text-gray-700 mb-1">Département <span class="text-red-500">*</span></label>
+                            <select name="id_dep" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" required>
+                                <option value="">Sélectionner</option>
+                                @foreach($departements as $dep)
+                                    <option value="{{ $dep->id_dep }}" {{ old('id_dep', $enseignant?->id_dep) == $dep->id_dep ? 'selected' : '' }}>
+                                        {{ $dep->lib_dep }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('id_dep') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
 
-      {{-- Grade / Statut / Département --}}
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
-        <div>
-          <label class="form-label">Grade <span style="color:red">*</span></label>
-          <select name="id_grd" class="form-input" required>
-            <option value="">Choisir…</option>
-            @foreach($grades as $g)
-            <option value="{{ $g->id_grd }}" {{ old('id_grd',$enseignant?->id_grd)==$g->id_grd?'selected':'' }}>
-              {{ $g->lib_grd }}
-            </option>
-            @endforeach
-          </select>
-          @error('id_grd')<div class="form-error">{{ $message }}</div>@enderror
-        </div>
-        <div>
-          <label class="form-label">Statut <span style="color:red">*</span></label>
-          <select name="id_stat" class="form-input" required>
-            <option value="">Choisir…</option>
-            @foreach($statuts as $s)
-            <option value="{{ $s->id_stat }}" {{ old('id_stat',$enseignant?->id_stat)==$s->id_stat?'selected':'' }}>
-              {{ $s->lib_stat }}
-            </option>
-            @endforeach
-          </select>
-          @error('id_stat')<div class="form-error">{{ $message }}</div>@enderror
-        </div>
-        <div>
-          <label class="form-label">Département <span style="color:red">*</span></label>
-          <select name="id_dep" class="form-input" required>
-            <option value="">Choisir…</option>
-            @foreach($departements as $d)
-            <option value="{{ $d->id_dep }}" {{ old('id_dep',$enseignant?->id_dep)==$d->id_dep?'selected':'' }}>
-              {{ $d->lib_dep }}
-            </option>
-            @endforeach
-          </select>
-          @error('id_dep')<div class="form-error">{{ $message }}</div>@enderror
-        </div>
-      </div>
+                    @if(!$enseignant)
+                    <div class="mt-6 pt-4 border-t border-gray-100">
+                        <h4 class="font-medium text-gray-800 mb-3 text-sm"> Créer un compte enseignant</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" name="email_compte" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" 
+                                       value="" placeholder="jean.kouadio@uvci.edu.ci" autocomplete="off">
+                                @error('email_compte') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="form-label text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+                                <input type="password" name="password_compte" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" 
+                                       value="" placeholder="8 caractères minimum" autocomplete="new-password">
+                                @error('password_compte') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="form-label text-sm font-medium text-gray-700 mb-1">Confirmer</label>
+                                <input type="password" name="password_compte_confirmation" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" 
+                                       value="" placeholder="Retapez le mot de passe" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
-      {{-- Compte utilisateur (optionnel) --}}
-      @if(!$enseignant)
-      <div style="background:#F4F6FA;border-radius:10px;padding:16px;border:1px solid var(--border);">
-        <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:12px;">
-          🔐 Créer un compte d'accès (optionnel)
+                    <!-- Boutons -->
+                    <div class="flex gap-3 mt-6 pt-2">
+                        <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-[#5B2E8E] to-[#2E7D32] text-white hover:brightness-105 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            {{ $enseignant ? 'Mettre à jour' : 'Créer l\'enseignant' }}
+                        </button>
+                        <a href="{{ route('secretaire.enseignants') }}" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-white text-[#5B2E8E] border border-gray-200 hover:bg-gray-50 transition">Annuler</a>
+                    </div>
+                </div>
+            </form>
         </div>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <div>
-            <label class="form-label">Email de connexion</label>
-            <input type="email" name="email_compte" value="{{ old('email_compte') }}"
-              class="form-input" placeholder="enseignant@uvci.ci">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div>
-              <label class="form-label">Mot de passe</label>
-              <input type="password" name="password_compte" class="form-input" minlength="8">
-            </div>
-            <div>
-              <label class="form-label">Confirmer</label>
-              <input type="password" name="password_compte_confirmation" class="form-input">
-            </div>
-          </div>
-        </div>
-      </div>
-      @endif
-
     </div>
-
-    <div class="card-footer">
-      <a href="{{ route('secretaire.enseignants') }}" style="font-size:13px;color:var(--muted);text-decoration:none;">
-        ← Annuler
-      </a>
-      <button type="submit" class="btn btn-navy">
-        {{ $enseignant ? 'Enregistrer les modifications' : 'Ajouter l\'enseignant' }}
-      </button>
-    </div>
-  </form>
 </div>
 @endsection

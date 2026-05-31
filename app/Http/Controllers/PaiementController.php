@@ -11,14 +11,18 @@ class PaiementController extends Controller
     // ── Helpers ───────────────────────────────────────────────
     private function getAnnee(?int $id = null): ?AnneeAcademique
     {
+        if ($id && !AnneeAcademique::where('id_anee', $id)->exists()) {
+            return null;
+        }
         return $id ? AnneeAcademique::find($id) : AnneeAcademique::encours();
-    }
+}
 
     private function buildLigne(Enseignant $ens, AnneeAcademique $annee): array
     {
-        $activites             = $ens->activites()
+        $activites = $ens->activites()
             ->with(['typeActivite','ressource.sequence.cours'])
             ->where('id_anee', $annee->id_anee)
+            ->where('est_valide', true)   // ← AJOUT
             ->latest('date_act')->get();
 
         $volumeTotal           = (float) $activites->sum('v_hor');

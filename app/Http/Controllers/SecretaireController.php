@@ -19,8 +19,8 @@ class SecretaireController extends Controller
         $stats = [
             'total_enseignants' => Enseignant::count(),
             'total_cours'       => Cours::count(),
-            'total_activites'   => Activite::when($annee, fn($q) => $q->where('id_anee', $annee->id_anee))->count(),
-            'volume_total'      => Activite::when($annee, fn($q) => $q->where('id_anee', $annee->id_anee))->sum('v_hor'),
+            'total_activites'   => Activite::when($annee, fn($q) => $q->where('id_anee', $annee->id_anee))->where('est_valide', true)->count(),
+            'volume_total'      => Activite::when($annee, fn($q) => $q->where('id_anee', $annee->id_anee))->where('est_valide', true)->sum('v_hor'),
             'annee'             => $annee,
         ];
 
@@ -129,13 +129,17 @@ class SecretaireController extends Controller
             'nom'                          => 'required|string|max:100',
             'pnom'                         => 'required|string|max:100',
             'tel'                          => 'nullable|string|max:20',
-            'tx_horaire'                   => 'required|numeric|min:0',
+            'tx_horaire'                   => 'required|numeric|min:1',
             'id_grd'                       => 'required|exists:grades,id_grd',
             'id_stat'                      => 'required|exists:statuts,id_stat',
             'id_dep'                       => 'required|exists:departements,id_dep',
             'email_compte'                 => 'nullable|email|unique:utilisateurs,email',
             'password_compte'              => 'nullable|min:8|confirmed',
             'password_compte_confirmation' => 'nullable',
+        ], [
+            'tx_horaire.min' => 'Le taux horaire doit être au moins 1 FCFA/h.',
+            'tx_horaire.required' => 'Le taux horaire est obligatoire.',
+            'tx_horaire.numeric' => 'Le taux horaire doit être un nombre.',  
         ]);
 
         $idUtil = null;
@@ -148,6 +152,7 @@ class SecretaireController extends Controller
             while (Utilisateur::where('login', $login)->exists()) {
                 $login = $base . $i++;
             }
+        
             $user   = Utilisateur::create([
                 'login' => $login,
                 'email' => $data['email_compte'],
@@ -169,7 +174,7 @@ class SecretaireController extends Controller
         ]);
 
         return redirect()->route('secretaire.enseignants')
-                         ->with('success', 'Enseignant ajouté.');
+                        ->with('success', 'Enseignant ajouté.');
     }
 
     public function editEnseignant(Enseignant $enseignant)
@@ -220,15 +225,17 @@ class SecretaireController extends Controller
             'intit'     => 'required|string|max:200',
             'filre'     => 'required|string|max:150',
             'niv'       => 'required|in:L1,L2,L3,M1,M2',
-            'nbh_bse'   => 'required|numeric|min:0',
+            'nbh_bse'   => 'required|numeric|min:1',
             'nbr_crdt'  => 'required|integer|min:1',
             'nbr_squce' => 'required|integer|min:1',
             'id_sem'    => 'required|exists:semestres,id_sem',
             'id_spec'   => 'required|exists:specialites,id_spec',
+        ], [
+            'nbh_bse.min' => 'Le nombre d’heures de base doit être au moins 1.',
         ]);
         Cours::create($data);
         return redirect()->route('secretaire.cours')->with('success','Cours créé.');
-    }
+}
 
     // ── Séquences ─────────────────────────────────────────────
     public function sequences(Cours $cours)
@@ -275,8 +282,12 @@ class SecretaireController extends Controller
         $data = $request->validate([
             'niv_comp'       => 'required|in:1,2,3',
             'id_typ_ress'    => 'required|exists:types_ressources,id_typ_ress',
-            'dte_creat_ress' => 'required|date',
-        ]);
+            'dte_creat_ress' => 'required|date|before_or_equal:today',
+        ], [
+            'dte_creat_ress.before_or_equal' => 'La date de création ne peut pas être dans le futur.',
+            'dte_creat_ress.required' => 'La date de création est obligatoire.',
+            'dte_creat_ress.date' => 'Format de date invalide.',
+]);
         Ressource::create([
             'niv_comp'       => $data['niv_comp'],
             'id_typ_ress'    => $data['id_typ_ress'],
@@ -284,7 +295,7 @@ class SecretaireController extends Controller
             'id_seq'         => $sequence->id_seq,
         ]);
         return redirect()->route('secretaire.ressources', $sequence)
-                         ->with('success','Ressource ajoutée.');
+                        ->with('success','Ressource ajoutée.');
     }
 
     public function destroyRessource(Ressource $ressource)
@@ -327,8 +338,41 @@ class SecretaireController extends Controller
             'id_ress'     => 'nullable|exists:ressources,id_ress',
             'observation' => 'nullable|string',
         ]);
+
+        // Validation : année académique non clôturée et date dans les bornes
+        $annee = AnneeAcademique::find($data['id_anee']);
+        if (!$annee) {
+            return back()->withErrors(['id_anee' => 'Année académique invalide.']);
+        }
+        if ($annee->etat_anee === 'cloturee') {
+            return back()->withErrors(['id_anee' => 'Cette année académique est clôturée.']);
+        }
+        $date = \Carbon\Carbon::parse($data['date_act']);
+        if ($date->lt($annee->dte_dbut) || $date->gt($annee->dte_fn)) {
+            return back()->withErrors(['date_act' => 'La date doit être comprise entre ' . $annee->dte_dbut->format('d/m/Y') . ' et ' . $annee->dte_fn->format('d/m/Y')]);
+        }
+
         Activite::create($data);
-        return redirect()->route('secretaire.activites')
-                         ->with('success','Activité enregistrée.');
+        return redirect()->route('secretaire.activites')->with('success', 'Activité enregistrée (en attente de validation).');
+    }
+    
+    // ──Valider une activités ─────────────────────────────────────────────
+    public function validerActivite(Activite $activite)
+    {
+        // Vérifier si déjà validée
+        if ($activite->est_valide) {
+            return redirect()->route('secretaire.activites')
+                            ->with('info', 'Cette activité est déjà validée.');
+        }
+
+        // Mettre à jour les champs de validation
+        $activite->update([
+            'est_valide'      => true,
+            'date_validation' => now(),
+            'valide_par'      => auth()->id(),
+        ]);
+
+    return redirect()->route('secretaire.activites')
+                     ->with('success', 'Activité validée avec succès.');
     }
 }

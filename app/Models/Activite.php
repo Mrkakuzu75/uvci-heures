@@ -13,15 +13,21 @@ class Activite extends Model
     protected $fillable = [
         'date_act','v_hor','observation',
         'id_ens','id_anee','id_typ_act','id_ress',
+        'est_valide', 'date_validation', 'valide_par',
     ];
 
-    protected $casts = ['date_act' => 'date'];
+    protected $casts = [
+        'date_act' => 'date',
+        'date_validation' => 'datetime',
+        'est_valide' => 'boolean',
+    ];
 
     // ── Relations ─────────────────────────────────────────────
     public function enseignant()   { return $this->belongsTo(Enseignant::class,    'id_ens',     'id_ens'); }
     public function annee()        { return $this->belongsTo(AnneeAcademique::class,'id_anee',   'id_anee'); }
     public function typeActivite() { return $this->belongsTo(TypeActivite::class,  'id_typ_act', 'id_typ_act'); }
     public function ressource()    { return $this->belongsTo(Ressource::class,     'id_ress',    'id_ress'); }
+    public function validePar()    { return $this->belongsTo(Utilisateur::class, 'valide_par', 'id_util');}
 
     // ── Calcul volume horaire ─────────────────────────────────
     public static function calculerVolumeHoraire(int $typeActiviteId, int $niveauComplexite, int $nbSequences): float

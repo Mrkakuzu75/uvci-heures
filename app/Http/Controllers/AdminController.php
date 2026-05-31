@@ -149,10 +149,20 @@ class AdminController extends Controller
 
     public function updateTaux(Request $request, Enseignant $enseignant)
     {
-        $data = $request->validate(['tx_horaire' => 'required|numeric|min:0']);
-        $enseignant->update($data);
+        $request->validate([
+            'tx_horaire' => 'required|numeric|min:1',
+        ], [
+            'tx_horaire.required' => 'Le taux horaire est obligatoire.',
+            'tx_horaire.numeric'  => 'Le taux horaire doit être un nombre.',
+            'tx_horaire.min'      => 'Le taux horaire doit être au moins 1 FCFA/h.',
+        ]);
+
+        $enseignant->update([
+            'tx_horaire' => $request->tx_horaire
+        ]);
+
         return redirect()->route('admin.taux-horaires')
-                         ->with('success','Taux de '.$enseignant->nom_complet.' mis à jour.');
+                         ->with('success', 'Taux horaire mis à jour avec succès.');
     }
 
     public static function loadConfig(): array

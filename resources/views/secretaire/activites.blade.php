@@ -1,83 +1,138 @@
-@extends('layouts.app')
-@section('title','Activités')
-@section('sidebar-role','Secrétaire Principal')
-@section('page-title','Activités pédagogiques')
-
-@section('sidebar-nav')
-  <x-nav-item route="secretaire.dashboard"   label="Tableau de bord" icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-  <x-nav-item route="secretaire.enseignants" label="Enseignants"     icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-  <x-nav-item route="secretaire.cours"       label="Cours"           icon="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-  <x-nav-item route="secretaire.activites"   label="Activités"       icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-  <x-nav-item route="secretaire.paiements"   label="États de paiement" icon="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
-@endsection
-
-@section('topbar-actions')
-  <a href="{{ route('secretaire.activites.create') }}" class="btn btn-navy">
-    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-    <span class="btn-text">Nouvelle activité</span>
-  </a>
-@endsection
+@extends('layouts.admin')
+@section('title', 'Gestion des activités')
 
 @section('content')
+<div class="space-y-6">
+    <!-- En-tête -->
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h1 class="text-2xl font-heading font-bold text-gray-900">Activités pédagogiques</h1>
+            <p class="text-gray-500 mt-1">Suivi et validation des activités des enseignants</p>
+        </div>
+        <a href="{{ route('secretaire.activites.create') }}" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nouvelle activité
+        </a>
+    </div>
 
-{{-- Résumé --}}
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
-  <div>
-    <span style="font-size:15px;font-weight:600;color:var(--navy);">Suivi des activités</span>
-    <span style="font-size:13px;color:var(--muted);margin-left:8px;">
-      — {{ $annee?->lib_anee ?? 'Toutes les années' }}
-    </span>
-  </div>
-  <div style="background:var(--green-light);border:1px solid rgba(0,192,127,.3);border-radius:10px;padding:8px 16px;">
-    <span style="font-size:12px;color:var(--green-dark);font-weight:500;">Volume total : </span>
-    <span style="font-size:15px;font-weight:700;color:var(--green-dark);">{{ number_format($activites->sum('v_hor'),1) }}h</span>
-  </div>
-</div>
+    <!-- Tableau -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-gray-800">Liste des activités</h3>
+            <span class="text-xs text-gray-400">{{ $activites->total() }} activité(s)</span>
+        </div>
+        <div class="table-container">
+            <table class="min-w-full">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Enseignant</th>
+                        <th>Type</th>
+                        <th>Cours</th>
+                        <th>Séquence</th>
+                        <th class="text-right">Volume (h)</th>
+                        <th>Statut</th>
+                        <th class="text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($activites as $act)
+                    <tr class="hover:bg-gray-50">
+                        <td class="text-gray-600 whitespace-nowrap">{{ $act->date_act->format('d/m/Y') }}</td>
+                        <td class="font-medium text-gray-800">{{ $act->enseignant?->nom_complet ?? '—' }}</td>
+                        <td>
+                            @if($act->id_typ_act == 1)
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#5B2E8E]/10 text-[#5B2E8E]">Création</span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Mise à jour</span>
+                            @endif
+                        </td>
+                        <td class="text-gray-700 max-w-[200px] truncate">{{ $act->ressource?->sequence?->cours?->intit ?? '—' }}</td>
+                        <td class="text-gray-500 max-w-[180px] truncate">{{ $act->ressource?->sequence?->ttre_seq ?? '—' }}</td>
+                        <td class="text-right font-semibold text-gray-800">{{ number_format($act->v_hor, 2) }} h</div></td>
+                        <td>
+                            @if($act->est_valide)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Validé
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="9"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/>
+                                    </svg>
+                                    En attente
+                                </span>
+                            @endif
+                        </td>
+                        <td class="text-right">
+                            @if(!$act->est_valide)
+                                <form method="POST" action="{{ route('secretaire.activites.valider', $act) }}" onsubmit="return confirm('Valider cette activité ?')" class="inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        Valider
+                                    </button>
+                                </form>
+                            @else
+                                <span class="text-xs text-gray-400">Validé le {{ $act->date_validation?->format('d/m/Y') }}</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-gray-400">Aucune activité</div></td>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-<div class="card">
-  <div class="card-header">
-    <h3>{{ $activites->total() }} activité(s)</h3>
-    <a href="{{ route('secretaire.activites.create') }}" class="btn btn-green btn-sm">+ Nouvelle activité</a>
-  </div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Enseignant</th>
-          <th class="hide-mobile">Cours / Ressource</th>
-          <th class="hide-mobile">Type</th>
-          <th>Vol. (h)</th>
-        </tr>
-      </thead>
-      <tbody>
-        @forelse($activites as $act)
-        <tr>
-          <td style="color:var(--muted);white-space:nowrap;font-size:13px;">{{ $act->date_act->format('d/m/Y') }}</td>
-          <td style="font-weight:500;font-size:13.5px;">{{ $act->enseignant?->nom_complet ?? '—' }}</td>
-          <td class="hide-mobile">
-            <div style="font-size:13px;font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-              {{ $act->ressource?->sequence?->cours?->intit ?? '—' }}
-            </div>
-            <div style="font-size:11px;color:var(--muted);">Niveau {{ $act->ressource?->niv_comp ?? '?' }}</div>
-          </td>
-          <td class="hide-mobile">
-            @if($act->id_typ_act == 1)
-              <span class="badge-green">Création</span>
+        <!-- PAGINATION SIMPLIFIEE -->
+        @if($activites->hasPages())
+        <div class="px-5 py-4 border-t border-gray-100 flex justify-center gap-3">
+            {{-- Bouton Précédent --}}
+            @if($activites->onFirstPage())
+                <span class="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Précédent
+                </span>
             @else
-              <span class="badge-orange">Mise à jour</span>
+                <a href="{{ $activites->previousPageUrl() }}" class="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Précédent
+                </a>
             @endif
-          </td>
-          <td style="font-weight:700;font-size:14px;color:var(--green);white-space:nowrap;">{{ number_format($act->v_hor,2) }}h</td>
-        </tr>
-        @empty
-        <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);">Aucune activité enregistrée</td></tr>
-        @endforelse
-      </tbody>
-    </table>
-  </div>
-  @if($activites->hasPages())
-  <div style="padding:14px 20px;border-top:1px solid var(--border);">{{ $activites->links() }}</div>
-  @endif
+
+            {{-- Bouton Suivant --}}
+            @if($activites->hasMorePages())
+                <a href="{{ $activites->nextPageUrl() }}" class="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                    Suivant
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            @else
+                <span class="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed">
+                    Suivant
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </span>
+            @endif
+        </div>
+        @endif
+    </div>
 </div>
 @endsection

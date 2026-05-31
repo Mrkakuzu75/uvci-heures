@@ -1,63 +1,98 @@
-@extends('layouts.app')
-@section('title', $utilisateur ? 'Modifier compte' : 'Nouveau compte')
-@section('sidebar-role','Administrateur')
-@section('page-title', $utilisateur ? 'Modifier le compte' : 'Créer un compte')
-
-@section('sidebar-nav')
-  <x-nav-item route="admin.dashboard"    label="Tableau de bord"    icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-  <x-nav-item route="admin.utilisateurs" label="Utilisateurs"       icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-  <x-nav-item route="admin.annees"       label="Années académiques" icon="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-  <x-nav-item route="admin.parametres"    label="Paramètres calcul"  icon="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-  <x-nav-item route="admin.taux-horaires"  label="Taux horaires"      icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-@endsection
+@extends('layouts.admin')
+@section('title', $utilisateur ? 'Modifier utilisateur' : 'Nouvel utilisateur')
 
 @section('content')
-<div style="max-width:520px;">
-  <form method="POST" action="{{ $utilisateur ? route('admin.utilisateurs.update',$utilisateur) : route('admin.utilisateurs.store') }}" class="card overflow-hidden">
-    @csrf @if($utilisateur) @method('PUT') @endif
-    <div class="card-header"><h3>Informations du compte</h3></div>
-    <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+<div class="max-w-2xl mx-auto">
+    <!-- Bouton retour -->
+    <div class="mb-6">
+        <a href="{{ route('admin.utilisateurs') }}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Retour à la liste
+        </a>
+    </div>
 
-      <div>
-        <span class="form-label">Rôle <span style="color:red">*</span></span>
-        <div class="role-selector">
-          @foreach([['administrateur','⚙️'],['secretaire','📋'],['enseignant','👨‍🏫']] as [$val,$icon])
-          <label>
-            <input type="radio" name="role" value="{{ $val }}" {{ old('role',$utilisateur?->role??'secretaire')===$val?'checked':'' }}>
-            <div class="rs-card">
-              <span class="rs-icon">{{ $icon }}</span>
-              <span class="rs-name">{{ ucfirst($val) }}</span>
-            </div>
-          </label>
-          @endforeach
+    <!-- Formulaire -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-gray-800">{{ $utilisateur ? 'Modifier' : 'Créer' }} un utilisateur</h3>
         </div>
-        @error('role')<div class="form-error">{{ $message }}</div>@enderror
-      </div>
+        <div class="p-6">
+            <form method="POST" action="{{ $utilisateur ? route('admin.utilisateurs.update', $utilisateur) : route('admin.utilisateurs.store') }}">
+                @csrf
+                @if($utilisateur) @method('PUT') @endif
 
-      <div>
-        <label class="form-label">Login <span style="color:red">*</span></label>
-        <input type="text" name="login" value="{{ old('login',$utilisateur?->login) }}" class="form-input" required>
-        @error('login')<div class="form-error">{{ $message }}</div>@enderror
-      </div>
-      <div>
-        <label class="form-label">Email <span style="color:red">*</span></label>
-        <input type="email" name="email" value="{{ old('email',$utilisateur?->email) }}" class="form-input" required>
-        @error('email')<div class="form-error">{{ $message }}</div>@enderror
-      </div>
-      <div>
-        <label class="form-label">Mot de passe {{ $utilisateur ? '(laisser vide pour ne pas changer)' : '*' }}</label>
-        <input type="password" name="password" class="form-input" {{ $utilisateur?'':'required' }} minlength="8">
-        @error('password')<div class="form-error">{{ $message }}</div>@enderror
-      </div>
-      <div>
-        <label class="form-label">Confirmer mot de passe</label>
-        <input type="password" name="password_confirmation" class="form-input">
-      </div>
+                <div class="space-y-5">
+                    <!-- Login -->
+                    <div>
+                        <label class="form-label">Login <span class="text-red-500">*</span></label>
+                        <input type="text" name="login" class="form-input @error('login') border-red-500 @enderror" 
+                               value="{{ old('login', $utilisateur?->login) }}" required placeholder="ex: jdupont">
+                        @error('login')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="form-label">Email <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" class="form-input @error('email') border-red-500 @enderror" 
+                               value="{{ old('email', $utilisateur?->email) }}" required placeholder="ex: jdupont@uvci.edu.ci">
+                        @error('email')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Mot de passe -->
+                    <div>
+                        <label class="form-label">{{ $utilisateur ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe' }} @if(!$utilisateur)<span class="text-red-500">*</span>@endif</label>
+                        <input type="password" name="password" class="form-input @error('password') border-red-500 @enderror" 
+                               {{ !$utilisateur ? 'required' : '' }} placeholder="8 caractères minimum">
+                        @error('password')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Confirmation mot de passe -->
+                    @if($utilisateur)
+                    <div>
+                        <label class="form-label">Confirmer le nouveau mot de passe</label>
+                        <input type="password" name="password_confirmation" class="form-input" placeholder="Retapez le mot de passe">
+                    </div>
+                    @else
+                    <div>
+                        <label class="form-label">Confirmer le mot de passe <span class="text-red-500">*</span></label>
+                        <input type="password" name="password_confirmation" class="form-input" required placeholder="Retapez le mot de passe">
+                    </div>
+                    @endif
+
+                    <!-- Rôle -->
+                    <div>
+                        <label class="form-label">Rôle <span class="text-red-500">*</span></label>
+                        <select name="role" class="form-select @error('role') border-red-500 @enderror" required>
+                            <option value="administrateur" {{ old('role', $utilisateur?->role) == 'administrateur' ? 'selected' : '' }}>Administrateur</option>
+                            <option value="secretaire" {{ old('role', $utilisateur?->role) == 'secretaire' ? 'selected' : '' }}>Secrétaire</option>
+                            <option value="enseignant" {{ old('role', $utilisateur?->role) == 'enseignant' ? 'selected' : '' }}>Enseignant</option>
+                        </select>
+                        @error('role')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex gap-3 mt-8">
+                    <button type="submit" class="btn btn-primary flex-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        {{ $utilisateur ? 'Mettre à jour' : 'Créer' }}
+                    </button>
+                    <a href="{{ route('admin.utilisateurs') }}" class="btn btn-secondary flex-1">Annuler</a>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="card-footer">
-      <a href="{{ route('admin.utilisateurs') }}" style="font-size:13px;color:var(--muted);text-decoration:none;">Annuler</a>
-      <button type="submit" class="btn btn-navy">{{ $utilisateur ? 'Enregistrer' : 'Créer le compte' }}</button>
-    </div>
-  </form>
 </div>
 @endsection

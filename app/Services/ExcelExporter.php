@@ -90,7 +90,7 @@ class ExcelExporter
         $strings   = [];
         $sheetXmls = [];
         foreach ($this->sheets as $i => $sheet) {
-            [$xml, $strings] = $this->buildSheet($sheet, $strings);
+            [$xml, $strings] = $this->buildSheet($sheet, $strings, $i);
             $sheetXmls[$i]   = $xml;
         }
 
@@ -112,28 +112,52 @@ class ExcelExporter
     }
 
     // ════════════════════════════════════════════════════════
-    private function buildSheet(array $sheet, array &$strings): array
+    private function buildSheet(array $sheet, array &$strings, int $sheetIndex): array
     {
         $headers = $sheet['headers'];
         $rows    = $sheet['rows'];
         $nbCols  = count($headers);
+        
+        // Détection du type de feuille pour adapter les largeurs
+        $sheetName = $sheet['name'];
+        $isResumeSheet = str_contains($sheetName, 'RÉSUMÉ') || str_contains($sheetName, 'STATISTIQUES');
+        $isDetailSheet = str_contains($sheetName, 'DÉTAIL') || str_contains($sheetName, 'ACTIVITÉS');
+        $isGlobalSheet = str_contains($sheetName, 'État de paiement') || str_contains($sheetName, 'paiement');
 
         $xml  = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n";
         $xml .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
         $xml .= '<sheetView workbookViewId="0"/>';
-        $xml .= '<sheetFormatPr defaultRowHeight="17"/>';
+        $xml .= '<sheetFormatPr defaultRowHeight="18" />';
 
-        // Colonnes — largeur adaptative
+        // Largeurs des colonnes adaptées au type de feuille
         $xml .= '<cols>';
         for ($c = 0; $c < $nbCols; $c++) {
-            $w   = $c === 0 ? 6 : ($c <= 1 ? 18 : ($c === 5 ? 32 : ($c >= 8 ? 16 : 20)));
+            if ($isResumeSheet) {
+                // Feuille RÉSUMÉ / STATISTIQUES : 2 colonnes larges
+                if ($c == 0) {
+                    $w = 38; // Champ
+                } else {
+                    $w = 48; // Valeur
+                }
+            } elseif ($isDetailSheet) {
+                // Feuille DÉTAIL : 6 colonnes de taille moyenne
+                $widths = [15, 32, 28, 18, 14, 12];
+                $w = $widths[$c] ?? 20;
+            } elseif ($isGlobalSheet) {
+                // Feuille GLOBALE : 13 colonnes plus petites
+                $widths = [5, 22, 18, 14, 12, 20, 12, 12, 12, 12, 14, 14, 16];
+                $w = $widths[$c] ?? 12;
+            } else {
+                // Par défaut
+                $w = $c == 0 ? 25 : 20;
+            }
             $xml .= '<col min="' . ($c + 1) . '" max="' . ($c + 1) . '" width="' . $w . '" customWidth="1"/>';
         }
         $xml .= '</cols>';
         $xml .= '<sheetData>';
 
-        // ── Ligne d'en-tête (style 1) ──
-        $xml .= '<row r="1" ht="20">';
+        // ── Ligne d'en-tête (style 1 - violet UVCI) ──
+        $xml .= '<row r="1" ht="24">';
         foreach ($headers as $ci => $h) {
             $col = $this->col($ci) . '1';
             $si  = $this->si($h, $strings);
@@ -142,24 +166,28 @@ class ExcelExporter
         $xml .= '</row>';
 
         // ── Lignes de données ──
+        $rowNum = 2;
         foreach ($rows as $ri => $row) {
-            $rowNum  = $ri + 2;
             $isTotal = isset($row['__total']) && $row['__total'];
             $values  = $isTotal ? array_values($row['values']) : array_values($row);
             $style   = $isTotal ? 4 : ($ri % 2 === 0 ? 2 : 3);
-
-            $xml .= "<row r=\"{$rowNum}\" ht=\"16\">";
+            
+            $xml .= "<row r=\"{$rowNum}\" ht=\"20\">";
             foreach ($values as $ci => $val) {
                 if ($ci >= $nbCols) break;
                 $col = $this->col($ci) . $rowNum;
-                if (is_numeric($val) && $val !== '' && !is_string($val)) {
-                    $xml .= "<c r=\"{$col}\" s=\"{$style}\"><v>" . htmlspecialchars((string) $val, ENT_XML1) . "</v></c>";
+                
+                $displayVal = ($val === '' || $val === null) ? '' : $val;
+                
+                if (is_numeric($displayVal) && $displayVal !== '' && !is_string($displayVal)) {
+                    $xml .= "<c r=\"{$col}\" s=\"{$style}\"><v>" . htmlspecialchars((string) $displayVal, ENT_XML1) . "</v></c>";
                 } else {
-                    $si  = $this->si((string) $val, $strings);
+                    $si  = $this->si((string) $displayVal, $strings);
                     $xml .= "<c r=\"{$col}\" t=\"s\" s=\"{$style}\"><v>{$si}</v></c>";
                 }
             }
             $xml .= '</row>';
+            $rowNum++;
         }
 
         $xml .= '</sheetData>';
@@ -175,20 +203,22 @@ class ExcelExporter
     {
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-  <fonts count="5">
-    <font><sz val="10"/><name val="Calibri"/><color rgb="FF1A1A1A"/></font>
-    <font><sz val="10"/><name val="Calibri"/><b/><color rgb="FFFFFFFF"/></font>
-    <font><sz val="10"/><name val="Calibri"/><color rgb="FF1A1A1A"/></font>
-    <font><sz val="10"/><name val="Calibri"/><b/><color rgb="FF009962"/></font>
-    <font><sz val="10"/><name val="Calibri"/><b/><color rgb="FF0D1B2A"/></font>
+  <fonts count="6">
+    <font><sz val="10"/><name val="Segoe UI"/><color rgb="FF1A1A1A"/></font>
+    <font><sz val="11"/><name val="Segoe UI"/><b/><color rgb="FFFFFFFF"/></font>
+    <font><sz val="10"/><name val="Segoe UI"/><color rgb="FF1A1A1A"/></font>
+    <font><sz val="10"/><name val="Segoe UI"/><b/><color rgb="FF2E7D32"/></font>
+    <font><sz val="11"/><name val="Segoe UI"/><b/><color rgb="FF0D1B2A"/></font>
+    <font><sz val="12"/><name val="Segoe UI"/><b/><color rgb="FF5B2E8E"/></font>
   </fonts>
-  <fills count="6">
+  <fills count="7">
     <fill><patternFill patternType="none"/></fill>
     <fill><patternFill patternType="gray125"/></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FF0D1B2A"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFE6FBF3"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFFAFBFC"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFD4F5E9"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF5B2E8E"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF3F6FF"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFF8F0"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFE8F5E9"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFEDE7F5"/></patternFill></fill>
   </fills>
   <borders count="2">
     <border><left/><right/><top/><bottom/><diagonal/></border>
@@ -202,26 +232,24 @@ class ExcelExporter
   <cellStyleXfs count="1">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
   </cellStyleXfs>
-  <cellXfs count="5">
-    <!-- 0: Normal -->
+  <cellXfs count="6">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0">
       <alignment vertical="center" wrapText="1"/>
     </xf>
-    <!-- 1: Header navy fond blanc -->
     <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0">
-      <alignment vertical="center" horizontal="center"/>
+      <alignment vertical="center" horizontal="center" wrapText="1"/>
     </xf>
-    <!-- 2: Ligne paire fond vert clair -->
     <xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0">
-      <alignment vertical="center"/>
+      <alignment vertical="center" wrapText="1"/>
     </xf>
-    <!-- 3: Ligne impaire fond blanc cassé -->
     <xf numFmtId="0" fontId="2" fillId="4" borderId="1" xfId="0">
-      <alignment vertical="center"/>
+      <alignment vertical="center" wrapText="1"/>
     </xf>
-    <!-- 4: Total fond vert foncé -->
     <xf numFmtId="0" fontId="3" fillId="5" borderId="1" xfId="0">
-      <alignment vertical="center" horizontal="right"/>
+      <alignment vertical="center" horizontal="right" wrapText="1"/>
+    </xf>
+    <xf numFmtId="0" fontId="5" fillId="6" borderId="0" xfId="0">
+      <alignment vertical="center" horizontal="left" wrapText="1"/>
     </xf>
   </cellXfs>
 </styleSheet>';
@@ -248,8 +276,6 @@ class ExcelExporter
         return $col;
     }
 
-    // ════════════════════════════════════════════════════════
-    // ZIP natif PHP — aucune extension requise
     // ════════════════════════════════════════════════════════
     private function zip(array $files): string
     {

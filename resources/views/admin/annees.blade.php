@@ -1,63 +1,118 @@
-@extends('layouts.app')
-@section('title','Années académiques')
-@section('sidebar-role','Administrateur')
-@section('page-title','Années académiques')
 
-@section('sidebar-nav')
-  <x-nav-item route="admin.dashboard"    label="Tableau de bord"    icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-  <x-nav-item route="admin.utilisateurs" label="Utilisateurs"       icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-  <x-nav-item route="admin.annees"       label="Années académiques" icon="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-  <x-nav-item route="admin.parametres"    label="Paramètres calcul"  icon="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-  <x-nav-item route="admin.taux-horaires"  label="Taux horaires"      icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-@endsection
+@extends('layouts.admin')
+@section('title', 'Années académiques')
 
 @section('content')
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-  <div class="card">
-    <div class="card-header"><h3>Années enregistrées</h3></div>
-    @php $bdg=['en_cours'=>'badge-green','a_venir'=>'badge-blue','cloturee'=>'badge-gray']; $lbl=['en_cours'=>'En cours','a_venir'=>'À venir','cloturee'=>'Clôturée']; @endphp
-    @forelse($annees as $a)
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #F0F2F5;gap:12px;">
-      <div>
-        <div style="font-weight:700;font-size:15px;">{{ $a->lib_anee }}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px;">{{ \Carbon\Carbon::parse($a->dte_dbut)->format('d/m/Y') }} → {{ \Carbon\Carbon::parse($a->dte_fn)->format('d/m/Y') }}</div>
-      </div>
-      <span class="{{ $bdg[$a->etat_anee]??'badge-gray' }}">{{ $lbl[$a->etat_anee]??$a->etat_anee }}</span>
+<div class="space-y-6">
+    <!-- En-tête -->
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h1 class="text-2xl font-heading font-bold text-gray-900">Années académiques</h1>
+            <p class="text-gray-500 mt-1">Gestion des années académiques</p>
+        </div>
+        <button onclick="showCreateModal()" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nouvelle année
+        </button>
     </div>
-    @empty
-    <div style="padding:32px;text-align:center;font-size:13px;color:var(--muted);">Aucune année configurée</div>
-    @endforelse
-  </div>
 
-  <div class="card">
-    <div class="card-header"><h3>Ajouter une année</h3></div>
-    <form method="POST" action="{{ route('admin.annees.store') }}" class="card-body" style="display:flex;flex-direction:column;gap:14px;">
-      @csrf
-      <div>
-        <label class="form-label">Libellé <span style="color:red">*</span></label>
-        <input type="text" name="lib_anee" value="{{ old('lib_anee') }}" placeholder="ex: 2025-2026" class="form-input" required>
-        @error('lib_anee')<div class="form-error">{{ $message }}</div>@enderror
-      </div>
-      <div class="grid-2">
-        <div>
-          <label class="form-label">Date début <span style="color:red">*</span></label>
-          <input type="date" name="dte_dbut" value="{{ old('dte_dbut') }}" class="form-input" required>
+    <!-- Liste des années -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-gray-800">Liste des années académiques</h3>
+            <span class="text-xs text-gray-400">{{ $annees->count() }} année(s)</span>
         </div>
-        <div>
-          <label class="form-label">Date fin <span style="color:red">*</span></label>
-          <input type="date" name="dte_fn" value="{{ old('dte_fn') }}" class="form-input" required>
+        <div class="table-container">
+            <table class="min-w-full">
+                <thead>
+                    <tr>
+                        <th>Libellé</th>
+                        <th>Date début</th>
+                        <th>Date fin</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($annees as $annee)
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="font-medium text-gray-800">{{ $annee->lib_anee }}</td>
+                        <td class="text-gray-600">{{ $annee->dte_dbut->format('d/m/Y') }}</td>
+                        <td class="text-gray-600">{{ $annee->dte_fn->format('d/m/Y') }}</td>
+                        <td>
+                            @if($annee->etat_anee === 'en_cours')
+                                <span class="badge badge-success">En cours</span>
+                            @elseif($annee->etat_anee === 'cloturee')
+                                <span class="badge badge-danger">Clôturée</span>
+                            @else
+                                <span class="badge badge-warning">À venir</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="text-center py-8 text-gray-400">Aucune année académique</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-      </div>
-      <div>
-        <label class="form-label">État <span style="color:red">*</span></label>
-        <select name="etat_anee" class="form-input" required>
-          <option value="a_venir"  {{ old('etat_anee')==='a_venir'?'selected':'' }}>À venir</option>
-          <option value="en_cours" {{ old('etat_anee')==='en_cours'?'selected':'' }}>En cours</option>
-          <option value="cloturee" {{ old('etat_anee')==='cloturee'?'selected':'' }}>Clôturée</option>
-        </select>
-      </div>
-      <button type="submit" class="btn btn-navy" style="justify-content:center;">Créer l'année</button>
-    </form>
-  </div>
+    </div>
 </div>
+
+<!-- Modal Création -->
+<div id="createModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-heading font-bold text-gray-800">Nouvelle année académique</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <form method="POST" action="{{ route('admin.annees.store') }}">
+            @csrf
+            <div class="space-y-4">
+                <div>
+                    <label class="form-label">Libellé</label>
+                    <input type="text" name="lib_anee" class="form-input" required placeholder="Ex: 2024-2025">
+                </div>
+                <div>
+                    <label class="form-label">Date début</label>
+                    <input type="date" name="dte_dbut" class="form-input" required>
+                </div>
+                <div>
+                    <label class="form-label">Date fin</label>
+                    <input type="date" name="dte_fn" class="form-input" required>
+                </div>
+                <div>
+                    <label class="form-label">Statut</label>
+                    <select name="etat_anee" class="form-select">
+                        <option value="a_venir">À venir</option>
+                        <option value="en_cours">En cours</option>
+                        <option value="cloturee">Clôturée</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="btn btn-primary flex-1">Créer</button>
+                <button type="button" onclick="closeModal()" class="btn btn-secondary flex-1">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showCreateModal() {
+        document.getElementById('createModal').classList.remove('hidden');
+        document.getElementById('createModal').classList.add('flex');
+    }
+    
+    function closeModal() {
+        document.getElementById('createModal').classList.add('hidden');
+        document.getElementById('createModal').classList.remove('flex');
+    }
+</script>
 @endsection

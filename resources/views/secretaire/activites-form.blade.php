@@ -1,161 +1,125 @@
-@extends('layouts.app')
-@section('title','Nouvelle activité')
-@section('sidebar-role','Secrétaire Principal')
-@section('page-title','Enregistrer une activité')
-@section('page-subtitle','Le volume horaire est calculé automatiquement')
-
-@section('sidebar-nav')
-  <x-nav-item route="secretaire.dashboard"   label="Tableau de bord" icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-  <x-nav-item route="secretaire.enseignants" label="Enseignants"     icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-  <x-nav-item route="secretaire.cours"       label="Cours"           icon="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-  <x-nav-item route="secretaire.activites"   label="Activités"       icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-  <x-nav-item route="secretaire.paiements"   label="États de paiement" icon="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
-@endsection
+@extends('layouts.admin')
+@section('title', $activite ? 'Modifier une activité' : 'Nouvelle activité')
 
 @section('content')
-<div style="max-width:600px;">
-  <form method="POST" action="{{ route('secretaire.activites.store') }}" class="card">
-    @csrf
-
-    <div class="card-header">
-      <h3>Détails de l'activité pédagogique</h3>
+<div class="max-w-2xl mx-auto">
+    <!-- Bouton retour -->
+    <div class="mb-6">
+        <a href="{{ route('secretaire.activites') }}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Retour à la liste
+        </a>
     </div>
 
-    <div class="card-body" style="display:flex;flex-direction:column;gap:18px;">
-
-      {{-- Aperçu calcul --}}
-      <div id="calcPreview" style="display:none;background:var(--green-light);border:1px solid rgba(0,192,127,.3);border-radius:10px;padding:12px 16px;">
-        <div style="font-size:12px;color:var(--green-dark);font-weight:500;margin-bottom:2px;">Volume horaire estimé</div>
-        <div style="font-size:22px;font-weight:700;color:var(--green-dark);" id="calcResult">—</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Calculé automatiquement selon le niveau et le nombre de séquences</div>
-      </div>
-
-      {{-- Date + Année --}}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div>
-          <label class="form-label">Date de l'activité <span style="color:red">*</span></label>
-          <input type="date" name="date_act" value="{{ old('date_act', date('Y-m-d')) }}" class="form-input" required>
+    <!-- Formulaire -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-gray-800">{{ $activite ? 'Modifier' : 'Nouvelle' }} activité pédagogique</h3>
         </div>
-        <div>
-          <label class="form-label">Année académique <span style="color:red">*</span></label>
-          <select name="id_anee" class="form-input" required>
-            <option value="">Choisir…</option>
-            @foreach($annees as $a)
-            <option value="{{ $a->id_anee }}" {{ $a->etat_anee==='en_cours'?'selected':'' }}>
-              {{ $a->lib_anee }}{{ $a->etat_anee==='en_cours' ? ' (en cours)' : '' }}
-            </option>
-            @endforeach
-          </select>
+        <div class="p-6">
+            <form method="POST" action="{{ $activite ? route('secretaire.activites.update', $activite) : route('secretaire.activites.store') }}">
+                @csrf
+                @if($activite) @method('PUT') @endif
+
+                <div class="space-y-4">
+                    <!-- Date -->
+                    <div>
+                        <label class="form-label text-sm font-medium text-gray-700 mb-1">Date de l'activité <span class="text-red-500">*</span></label>
+                        <input type="date" name="date_act" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" 
+                               value="{{ old('date_act', $activite?->date_act?->format('Y-m-d')) }}" required>
+                        @error('date_act') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Enseignant -->
+                    <div>
+                        <label class="form-label text-sm font-medium text-gray-700 mb-1">Enseignant <span class="text-red-500">*</span></label>
+                        <select name="id_ens" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" required>
+                            <option value="">Sélectionner un enseignant</option>
+                            @foreach($enseignants as $ens)
+                                <option value="{{ $ens->id_ens }}" {{ old('id_ens', $activite?->id_ens) == $ens->id_ens ? 'selected' : '' }}>
+                                    {{ $ens->nom_complet }} - {{ $ens->grade?->lib_grd ?? 'Sans grade' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('id_ens') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Année académique -->
+                    <div>
+                        <label class="form-label text-sm font-medium text-gray-700 mb-1">Année académique <span class="text-red-500">*</span></label>
+                        <select name="id_anee" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" required>
+                            <option value="">Sélectionner une année</option>
+                            @foreach($annees as $annee)
+                                <option value="{{ $annee->id_anee }}" {{ old('id_anee', $activite?->id_anee) == $annee->id_anee ? 'selected' : '' }}>
+                                    {{ $annee->lib_anee }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('id_anee') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Type d'activité -->
+                    <div>
+                        <label class="form-label text-sm font-medium text-gray-700 mb-1">Type d'activité <span class="text-red-500">*</span></label>
+                        <select name="id_typ_act" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" required>
+                            <option value="">Sélectionner un type</option>
+                            @foreach($typesActivites as $type)
+                                <option value="{{ $type->id_typ_act }}" {{ old('id_typ_act', $activite?->id_typ_act) == $type->id_typ_act ? 'selected' : '' }}>
+                                    {{ $type->lib_typ_act }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('id_typ_act') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Ressource -->
+                    <div>
+                        <label class="form-label text-sm font-medium text-gray-700 mb-1">Ressource pédagogique</label>
+                        <select name="id_ress" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]">
+                            <option value="">Sélectionner une ressource (optionnel)</option>
+                            @foreach($ressources as $ress)
+                                <option value="{{ $ress->id_ress }}" {{ old('id_ress', $activite?->id_ress) == $ress->id_ress ? 'selected' : '' }}>
+                                    {{ $ress->sequence?->cours?->intit ?? 'Sans cours' }} - {{ $ress->sequence?->ttre_seq ?? 'Sans séquence' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('id_ress') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Observation -->
+                    <div>
+                        <label class="form-label text-sm font-medium text-gray-700 mb-1">Observation</label>
+                        <textarea name="observation" rows="3" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5B2E8E]/20 focus:border-[#5B2E8E]" 
+                                  placeholder="Informations complémentaires...">{{ old('observation', $activite?->observation) }}</textarea>
+                        @error('observation') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <!-- Info calcul auto -->
+                <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/>
+                        </svg>
+                        <span class="text-xs text-blue-700">Le volume horaire est calculé automatiquement selon la formule : Coefficient × Nombre de séquences du cours</span>
+                    </div>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex gap-3 mt-6">
+                    <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-[#5B2E8E] to-[#2E7D32] text-white hover:brightness-105 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        {{ $activite ? 'Mettre à jour' : 'Enregistrer l\'activité' }}
+                    </button>
+                    <a href="{{ route('secretaire.activites') }}" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-white text-[#5B2E8E] border border-gray-200 hover:bg-gray-50 transition">Annuler</a>
+                </div>
+            </form>
         </div>
-      </div>
-
-      {{-- Enseignant --}}
-      <div>
-        <label class="form-label">Enseignant <span style="color:red">*</span></label>
-        <select name="id_ens" class="form-input" required>
-          <option value="">Choisir un enseignant…</option>
-          @foreach($enseignants as $ens)
-          <option value="{{ $ens->id_ens }}" {{ old('id_ens')==$ens->id_ens?'selected':'' }}>
-            {{ $ens->nom_complet }} — {{ $ens->grade?->lib_grd }}
-          </option>
-          @endforeach
-        </select>
-        @error('id_ens')<div class="form-error">{{ $message }}</div>@enderror
-      </div>
-
-      {{-- Type d'activité --}}
-      <div>
-        <label class="form-label">Type d'activité <span style="color:red">*</span></label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          @foreach($typesActivites as $type)
-          <label style="cursor:pointer;">
-            <input type="radio" name="id_typ_act" value="{{ $type->id_typ_act }}"
-              onchange="updateCalc()"
-              {{ old('id_typ_act',1)==$type->id_typ_act?'checked':'' }}
-              style="display:none;" class="type-radio">
-            <div class="type-card" data-val="{{ $type->id_typ_act }}"
-              style="padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;background:#FAFAFA;transition:all .2s;display:flex;align-items:center;gap:8px;">
-              <div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="radio-dot"></div>
-              <span style="font-size:13.5px;font-weight:500;color:var(--navy);">{{ $type->lib_typ_act }}</span>
-            </div>
-          </label>
-          @endforeach
-        </div>
-        @error('id_typ_act')<div class="form-error">{{ $message }}</div>@enderror
-      </div>
-
-      {{-- Ressource --}}
-      <div>
-        <label class="form-label">Ressource pédagogique <span style="color:red">*</span></label>
-        <select name="id_ress" id="selectRess" onchange="updateCalc()" class="form-input">
-          <option value="">Choisir une ressource…</option>
-          @foreach($ressources as $r)
-          <option value="{{ $r->id_ress }}"
-            data-niv="{{ $r->niv_comp }}"
-            data-nbseq="{{ $r->nb_sequences }}"
-            {{ old('id_ress')==$r->id_ress?'selected':'' }}>
-            {{ $r->sequence?->cours?->intit ?? '?' }} › {{ $r->sequence?->ttre_seq }} (Niveau {{ $r->niv_comp }})
-          </option>
-          @endforeach
-        </select>
-      </div>
-
-      {{-- Observation --}}
-      <div>
-        <label class="form-label">Observation</label>
-        <textarea name="observation" rows="3" class="form-input" style="resize:vertical;"
-          placeholder="Remarques éventuelles…">{{ old('observation') }}</textarea>
-      </div>
-
     </div>
-
-    <div class="card-footer">
-      <a href="{{ route('secretaire.activites') }}" style="font-size:13px;color:var(--muted);text-decoration:none;">← Annuler</a>
-      <button type="submit" class="btn btn-navy">Enregistrer l'activité</button>
-    </div>
-  </form>
 </div>
-
-@push('scripts')
-<script>
-var coeffs = {1:{1:0.40,2:0.75,3:1.50}, 2:{1:0.20,2:0.375,3:0.75}};
-
-function updateCalc() {
-  var sel    = document.getElementById('selectRess');
-  var opt    = sel.options[sel.selectedIndex];
-  var niv    = parseInt(opt ? opt.getAttribute('data-niv') : 0) || 0;
-  var nbSeq  = parseInt(opt ? opt.getAttribute('data-nbseq') : 0) || 0;
-  var typeEl = document.querySelector('.type-radio:checked');
-  var typeId = typeEl ? parseInt(typeEl.value) : 1;
-  var prev   = document.getElementById('calcPreview');
-  var res    = document.getElementById('calcResult');
-
-  // Mise à jour style boutons radio
-  document.querySelectorAll('.type-radio').forEach(function(r) {
-    var card = r.nextElementSibling;
-    var dot  = card ? card.querySelector('.radio-dot') : null;
-    if (r.checked) {
-      card.style.borderColor = '#00C07F';
-      card.style.background  = '#E6FBF3';
-      if (dot) { dot.style.borderColor = '#00C07F'; dot.style.background = '#00C07F'; }
-    } else {
-      card.style.borderColor = 'var(--border)';
-      card.style.background  = '#FAFAFA';
-      if (dot) { dot.style.borderColor = 'var(--border)'; dot.style.background = 'transparent'; }
-    }
-  });
-
-  if (niv && nbSeq && typeId && coeffs[typeId] && coeffs[typeId][niv]) {
-    var vhor = (coeffs[typeId][niv] * nbSeq).toFixed(2);
-    res.textContent = vhor + 'h';
-    prev.style.display = 'block';
-  } else {
-    prev.style.display = 'none';
-  }
-}
-
-// Init au chargement
-document.addEventListener('DOMContentLoaded', updateCalc);
-</script>
-@endpush
 @endsection

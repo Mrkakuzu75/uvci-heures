@@ -1,99 +1,145 @@
-@extends('layouts.app')
-@section('title','Paramètres de calcul')
-@section('sidebar-role','Administrateur')
-@section('page-title','Paramètres de calcul')
-@section('page-subtitle','Définissez les coefficients utilisés pour calculer les volumes horaires')
-
-@section('sidebar-nav')
-  <x-nav-item route="admin.dashboard"    label="Tableau de bord"    icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-  <x-nav-item route="admin.utilisateurs" label="Utilisateurs"       icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-  <x-nav-item route="admin.annees"       label="Années académiques" icon="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-  <x-nav-item route="admin.parametres"   label="Paramètres calcul"  icon="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-  <x-nav-item route="admin.taux-horaires" label="Taux horaires"     icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-@endsection
+@extends('layouts.admin')
+@section('title', 'Paramètres de calcul')
 
 @section('content')
-<div style="max-width:700px;display:flex;flex-direction:column;gap:20px;">
-
-  {{-- Info formule --}}
-  <div style="background:var(--green-light);border:1px solid rgba(0,192,127,.3);border-radius:12px;padding:16px 20px;display:flex;gap:12px;">
-    <span style="font-size:20px;flex-shrink:0;">📐</span>
-    <div>
-      <div style="font-weight:600;font-size:13px;color:var(--green-dark);margin-bottom:4px;">Formule de calcul</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6;">
-        <strong style="color:var(--navy);">v_hor = coefficient(type, niveau) × nombre_séquences</strong><br>
-        Le <em>type</em> est soit "Création" (1) soit "Mise à jour" (2). Le <em>niveau</em> est la complexité de la ressource (1, 2 ou 3).
-      </div>
-    </div>
-  </div>
-
-  {{-- Formulaire --}}
-  <form method="POST" action="{{ route('admin.parametres.update') }}" class="card">
-    @csrf @method('PUT')
-
-    <div class="card-header">
-      <h3>Coefficients par type et niveau</h3>
+<div class="space-y-6">
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h1 class="text-2xl font-heading font-bold text-gray-900">Paramètres de calcul</h1>
+            <p class="text-gray-500 mt-1">Configuration des coefficients pour le calcul des heures</p>
+        </div>
     </div>
 
-    <div class="card-body" style="display:flex;flex-direction:column;gap:24px;">
-
-      {{-- Création --}}
-      <div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-          <span class="badge-green" style="font-size:12px;padding:4px 12px;">Création de ressource (Type 1)</span>
+    <!-- Formule de calcul -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-6 3v-3m-6 3h18M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-heading font-bold text-gray-800 mb-1">Formule de calcul du volume horaire</h3>
+                <p class="text-sm text-gray-600 mb-2">
+                    <span class="font-mono bg-blue-100 px-2 py-0.5 rounded">Volume horaire = Coefficient × Nombre de séquences du cours</span>
+                </p>
+                <p class="text-xs text-gray-500">
+                    Le coefficient dépend du <strong>type d'activité</strong> (création ou mise à jour) et du <strong>niveau de complexité</strong> de la ressource (1, 2 ou 3).
+                </p>
+                <div class="mt-3 text-xs text-gray-500 space-y-1">
+                    <p>• <strong>Niveau 1</strong> : Contenus simples + quiz + évaluations</p>
+                    <p>• <strong>Niveau 2</strong> : Niveau 1 avec 25% d'activités interactives</p>
+                    <p>• <strong>Niveau 3</strong> : Serious games, simulations, haute qualité</p>
+                </div>
+            </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
-          @foreach([1=>['label'=>'Niveau 1','desc'=>'Contenus simples + quiz'],2=>['label'=>'Niveau 2','desc'=>'Niv.1 + activités interactives'],3=>['label'=>'Niveau 3','desc'=>'Serious games, simulations']] as $niv=>$info)
-          <div>
-            <label class="form-label">{{ $info['label'] }}</label>
-            <input type="number" name="creation_niv{{ $niv }}"
-              value="{{ old('creation_niv'.$niv, $coefficients[1][$niv] ?? '') }}"
-              class="form-input" step="0.001" min="0" max="10" required>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px;">{{ $info['desc'] }}</div>
-          </div>
-          @endforeach
-        </div>
-        <div style="margin-top:10px;font-size:11px;color:var(--muted);background:#F4F6FA;padding:8px 12px;border-radius:8px;">
-          Exemple Niveau 1 : {{ $coefficients[1][1] ?? 0.40 }} × 40 séquences = <strong>{{ round(($coefficients[1][1]??0.40)*40,1) }}h</strong>
-        </div>
-      </div>
-
-      {{-- Mise à jour --}}
-      <div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-          <span class="badge-orange" style="font-size:12px;padding:4px 12px;">Mise à jour de ressource (Type 2)</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
-          @foreach([1=>['label'=>'Niveau 1','desc'=>'50% du coefficient création'],2=>['label'=>'Niveau 2','desc'=>'50% du coefficient création'],3=>['label'=>'Niveau 3','desc'=>'50% du coefficient création']] as $niv=>$info)
-          <div>
-            <label class="form-label">{{ $info['label'] }}</label>
-            <input type="number" name="maj_niv{{ $niv }}"
-              value="{{ old('maj_niv'.$niv, $coefficients[2][$niv] ?? '') }}"
-              class="form-input" step="0.001" min="0" max="10" required>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px;">{{ $info['desc'] }}</div>
-          </div>
-          @endforeach
-        </div>
-      </div>
-
-      {{-- Seuil heures complémentaires --}}
-      <div style="border-top:1px solid var(--border);padding-top:20px;">
-        <label class="form-label">Seuil heures complémentaires (h) <span style="color:red">*</span></label>
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <input type="number" name="seuil" value="{{ old('seuil',$seuil) }}"
-            class="form-input" style="max-width:180px;" min="1" max="5000" required>
-          <span style="font-size:12px;color:var(--muted);">Au-delà de ce seuil, les heures sont considérées complémentaires et majorées à 150%.</span>
-        </div>
-        @error('seuil')<div class="form-error">{{ $message }}</div>@enderror
-      </div>
-
     </div>
 
-    <div class="card-footer">
-      <span style="font-size:12px;color:var(--muted);">Les modifications s'appliquent aux nouvelles activités enregistrées.</span>
-      <button type="submit" class="btn btn-navy">Enregistrer les paramètres</button>
-    </div>
-  </form>
+    <form method="POST" action="{{ route('admin.parametres.update') }}">
+        @csrf
+        @method('PUT')
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Coefficients de création -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-gray-800">Création de ressources</h3>
+                    <span class="badge badge-purple">Coefficients</span>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="form-label mb-0">Niveau 1</label>
+                            <span class="text-xs text-gray-400">Contenus simples + quiz</span>
+                        </div>
+                        <input type="number" step="0.01" name="creation_niv1" class="form-input" value="{{ $coefficients[1][1] ?? 0.4 }}" required>
+                        <p class="text-xs text-gray-400 mt-1">Exemple: cours avec 20 séquences → {{ ($coefficients[1][1] ?? 0.4) * 20 }} heures</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="form-label mb-0">Niveau 2</label>
+                            <span class="text-xs text-gray-400">Niv.1 + 25% d'activités interactives</span>
+                        </div>
+                        <input type="number" step="0.01" name="creation_niv2" class="form-input" value="{{ $coefficients[1][2] ?? 0.75 }}" required>
+                        <p class="text-xs text-gray-400 mt-1">Exemple: cours avec 20 séquences → {{ ($coefficients[1][2] ?? 0.75) * 20 }} heures</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="form-label mb-0">Niveau 3</label>
+                            <span class="text-xs text-gray-400">Serious games, simulations</span>
+                        </div>
+                        <input type="number" step="0.01" name="creation_niv3" class="form-input" value="{{ $coefficients[1][3] ?? 1.5 }}" required>
+                        <p class="text-xs text-gray-400 mt-1">Exemple: cours avec 20 séquences → {{ ($coefficients[1][3] ?? 1.5) * 20 }} heures</p>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Coefficients de mise à jour -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-gray-800">Mise à jour de ressources</h3>
+                    <span class="badge badge-info">Coefficients</span>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="form-label mb-0">Niveau 1</label>
+                            <span class="text-xs text-gray-400">Contenus simples + quiz</span>
+                        </div>
+                        <input type="number" step="0.01" name="maj_niv1" class="form-input" value="{{ $coefficients[2][1] ?? 0.2 }}" required>
+                        <p class="text-xs text-gray-400 mt-1">Exemple: mise à jour → {{ ($coefficients[2][1] ?? 0.2) * 20 }} heures</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="form-label mb-0">Niveau 2</label>
+                            <span class="text-xs text-gray-400">Niv.1 + 25% d'activités interactives</span>
+                        </div>
+                        <input type="number" step="0.01" name="maj_niv2" class="form-input" value="{{ $coefficients[2][2] ?? 0.375 }}" required>
+                        <p class="text-xs text-gray-400 mt-1">Exemple: mise à jour → {{ ($coefficients[2][2] ?? 0.375) * 20 }} heures</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="form-label mb-0">Niveau 3</label>
+                            <span class="text-xs text-gray-400">Serious games, simulations</span>
+                        </div>
+                        <input type="number" step="0.01" name="maj_niv3" class="form-input" value="{{ $coefficients[2][3] ?? 0.75 }}" required>
+                        <p class="text-xs text-gray-400 mt-1">Exemple: mise à jour → {{ ($coefficients[2][3] ?? 0.75) * 20 }} heures</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seuil heures complémentaires -->
+        <div class="card mt-6">
+            <div class="card-header">
+                <h3 class="text-gray-800">Heures complémentaires</h3>
+                <span class="badge badge-warning">Majoration 150%</span>
+            </div>
+            <div class="p-5">
+                <div class="max-w-md">
+                    <label class="form-label">Seuil statutaire (heures)</label>
+                    <input type="number" name="seuil" class="form-input" value="{{ $seuil ?? 192 }}" required>
+                    <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <p class="text-xs text-gray-600 font-medium mb-1">Formule de calcul des heures complémentaires :</p>
+                        <p class="text-xs text-gray-500 font-mono">
+                            Si Volume total > Seuil alors<br>
+                            Heures complémentaires = Volume total - Seuil<br>
+                            Montant complémentaire = Heures complémentaires × Taux horaire × 1.5
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton Enregistrer -->
+        <div class="flex justify-end mt-6">
+            <button type="submit" class="btn btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Enregistrer les paramètres
+            </button>
+        </div>
+    </form>
 </div>
 @endsection

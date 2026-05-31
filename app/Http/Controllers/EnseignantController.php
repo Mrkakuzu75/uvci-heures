@@ -21,9 +21,10 @@ class EnseignantController extends Controller
 
     public function dashboard()
     {
-        $enseignant           = $this->enseignant();
-        $annee                = AnneeAcademique::encours();
+        $enseignant = $this->enseignant();
+        $annee      = AnneeAcademique::encours();
 
+        // Activités récentes (les 10 dernières, toutes statuts confondus pour affichage)
         $activites = Activite::with(['typeActivite', 'ressource.sequence.cours'])
             ->where('id_ens', $enseignant->id_ens)
             ->when($annee, fn($q) => $q->where('id_anee', $annee->id_anee))
@@ -31,7 +32,13 @@ class EnseignantController extends Controller
             ->take(10)
             ->get();
 
-        $volumeTotal           = $enseignant->volumeHoraireTotal($annee?->id_anee);
+        // Volume total : uniquement les activités validées (RG14)
+        $volumeTotal = Activite::where('id_ens', $enseignant->id_ens)
+            ->when($annee, fn($q) => $q->where('id_anee', $annee->id_anee))
+            ->where('est_valide', true)
+            ->sum('v_hor');
+
+        // Heures complémentaires basées sur le volume total validé
         $heuresComplementaires = $enseignant->heuresComplementaires(192, $annee?->id_anee);
 
         return view('enseignant.dashboard', compact(
@@ -44,7 +51,13 @@ class EnseignantController extends Controller
     {
         $enseignant = $this->enseignant();
         $annees     = AnneeAcademique::orderByDesc('dte_dbut')->get();
-        $anneeId    = request('annee_id', AnneeAcademique::encours()?->id_anee);
+        $anneeId    = request('annee_id');
+    
+        // Vérifier que l'annee_id correspond bien à une année existante
+        if ($anneeId && !AnneeAcademique::where('id_anee', $anneeId)->exists()) {
+            $anneeId = null;
+        }
+        $anneeId = $anneeId ?: AnneeAcademique::encours()?->id_anee;
 
         $activites = Activite::with(['typeActivite', 'ressource.sequence.cours', 'annee'])
             ->where('id_ens', $enseignant->id_ens)

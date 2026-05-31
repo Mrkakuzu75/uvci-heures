@@ -1,86 +1,133 @@
-@extends('layouts.app')
-@section('title','Séquences')
-@section('sidebar-role','Secrétaire Principal')
-@section('page-title','Séquences du cours')
-@section('page-subtitle', $cours->intit . ' — ' . $cours->niv)
-
-@section('sidebar-nav')
-  <x-nav-item route="secretaire.dashboard"   label="Tableau de bord" icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-  <x-nav-item route="secretaire.enseignants" label="Enseignants"     icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-  <x-nav-item route="secretaire.cours"       label="Cours"           icon="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-  <x-nav-item route="secretaire.activites"   label="Activités"       icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-  <x-nav-item route="secretaire.paiements"   label="États de paiement" icon="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
-@endsection
-
-@section('topbar-actions')
-  <a href="{{ route('secretaire.cours') }}" class="btn btn-outline">
-    ← Retour aux cours
-  </a>
-@endsection
+@extends('layouts.admin')
+@section('title', 'Gestion des séquences')
 
 @section('content')
-<div style="display:grid;grid-template-columns:1fr;gap:20px;">
-
-  {{-- Info cours --}}
-  <div style="background:var(--navy);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-    <div style="width:40px;height:40px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--navy);flex-shrink:0;">{{ $cours->niv }}</div>
-    <div style="flex:1;">
-      <div style="font-weight:700;font-size:15px;color:#fff;">{{ $cours->intit }}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;">{{ $cours->filre }} — {{ $cours->semestre?->lib_sem }} — {{ $cours->nbr_crdt }} crédits — {{ $cours->nbr_squce }} séquences prévues</div>
-    </div>
-    <div style="text-align:right;">
-      <div style="font-weight:700;font-size:22px;color:var(--green);">{{ $sequences->count() }}/{{ $cours->nbr_squce }}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.4);">séquences créées</div>
-    </div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:1fr;gap:20px;">
-
-    {{-- Liste des séquences --}}
-    <div class="card">
-      <div class="card-header">
-        <h3>Séquences ({{ $sequences->count() }})</h3>
-      </div>
-      @forelse($sequences as $seq)
-      <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-top:1px solid #F0F2F5;">
-        <div style="width:32px;height:32px;border-radius:8px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--green-dark);flex-shrink:0;">{{ $seq->ordre }}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:500;font-size:13.5px;">{{ $seq->ttre_seq }}</div>
-          @if($seq->desc_seq)<div style="font-size:11px;color:var(--muted);margin-top:1px;">{{ $seq->desc_seq }}</div>@endif
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-          <a href="{{ route('secretaire.ressources', $seq) }}" class="btn btn-green btn-sm">
-            {{ $seq->ressources_count }} ressource(s) →
-          </a>
-          <form method="POST" action="{{ route('secretaire.sequences.destroy', $seq) }}" onsubmit="return confirm('Supprimer cette séquence et ses ressources ?')">
-            @csrf @method('DELETE')
-            <button type="submit" class="btn btn-danger btn-sm">×</button>
-          </form>
-        </div>
-      </div>
-      @empty
-      <div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">Aucune séquence — ajoutez-en ci-dessous</div>
-      @endforelse
-    </div>
-
-    {{-- Formulaire ajout séquence --}}
-    <div class="card">
-      <div class="card-header"><h3>Ajouter une séquence</h3></div>
-      <form method="POST" action="{{ route('secretaire.sequences.store', $cours) }}" class="card-body" style="display:flex;flex-direction:column;gap:14px;">
-        @csrf
+<div class="space-y-6">
+    <!-- En-tête avec retour -->
+    <div class="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <label class="form-label">Titre de la séquence <span style="color:red">*</span></label>
-          <input type="text" name="ttre_seq" value="{{ old('ttre_seq') }}" class="form-input" placeholder="ex: Introduction aux variables" required>
-          @error('ttre_seq')<div class="form-error">{{ $message }}</div>@enderror
+            <div class="mb-2">
+                <a href="{{ route('secretaire.cours') }}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Retour aux cours
+                </a>
+            </div>
+            <h1 class="text-2xl font-heading font-bold text-gray-900">{{ $cours->intit }}</h1>
+            <p class="text-gray-500 mt-1">Gestion des séquences pédagogiques</p>
         </div>
-        <div>
-          <label class="form-label">Description</label>
-          <textarea name="desc_seq" class="form-input" rows="2" style="resize:vertical;" placeholder="Description optionnelle…">{{ old('desc_seq') }}</textarea>
-        </div>
-        <button type="submit" class="btn btn-navy">Ajouter la séquence</button>
-      </form>
+        <button onclick="showCreateModal()" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nouvelle séquence
+        </button>
     </div>
 
-  </div>
+    <!-- Liste des séquences -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-gray-800">Séquences du cours</h3>
+            <span class="text-xs text-gray-400">{{ $sequences->count() }} séquence(s)</span>
+        </div>
+        <div class="table-container">
+            <table class="min-w-full">
+                <thead>
+                    <tr>
+                        <th>Ordre</th>
+                        <th>Titre</th>
+                        <th>Description</th>
+                        <th>Ressources</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($sequences as $seq)
+                    <tr class="hover:bg-gray-50">
+                        <td>
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#5B2E8E]/10 text-[#5B2E8E] font-semibold text-sm">
+                                {{ $seq->ordre }}
+                            </span>
+                        </div>
+                        <td class="font-medium text-gray-800">{{ $seq->ttre_seq }}</div>
+                        <td class="text-gray-500 text-sm max-w-md">{{ Str::limit($seq->desc_seq ?? '—', 80) }}</div>
+                        <td>
+                            <a href="{{ route('secretaire.ressources', $seq) }}" class="inline-flex items-center gap-1 text-sm text-[#2E7D32] hover:underline">
+                                {{ $seq->ressources->count() }} ressource(s)
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                        <td class="text-right">
+                            <div class="flex gap-2 justify-end">
+                                <form method="POST" action="{{ route('secretaire.sequences.destroy', $seq) }}" onsubmit="return confirm('Supprimer cette séquence ?')" class="inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                        Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </tr>
+                    @empty
+                    <td><td colspan="5" class="text-center py-8 text-gray-400">Aucune séquence pour ce cours</div></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<!-- Modal Création -->
+<div id="createModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-heading font-bold text-gray-800">Nouvelle séquence</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <form method="POST" action="{{ route('secretaire.sequences.store', $cours) }}">
+            @csrf
+            <div class="space-y-4">
+                <div>
+                    <label class="form-label text-sm font-medium text-gray-700 mb-1">Titre <span class="text-red-500">*</span></label>
+                    <input type="text" name="ttre_seq" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm" required placeholder="Ex: Introduction à l'algorithmique" autocomplete="off">
+                </div>
+                <div>
+                    <label class="form-label text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="desc_seq" rows="3" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm" placeholder="Description détaillée de la séquence..."></textarea>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-[#5B2E8E] to-[#2E7D32] text-white hover:brightness-105 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Créer la séquence
+                </button>
+                <button type="button" onclick="closeModal()" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-white text-[#5B2E8E] border border-gray-200 hover:bg-gray-50 transition">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showCreateModal() {
+        document.getElementById('createModal').classList.remove('hidden');
+        document.getElementById('createModal').classList.add('flex');
+    }
+    
+    function closeModal() {
+        document.getElementById('createModal').classList.add('hidden');
+        document.getElementById('createModal').classList.remove('flex');
+    }
+</script>
 @endsection

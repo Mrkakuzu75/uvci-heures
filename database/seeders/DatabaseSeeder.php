@@ -7,59 +7,41 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\{
     Utilisateur, Grade, Statut, Departement,
     Specialite, Semestre, TypeRessource, TypeActivite,
-    AnneeAcademique, Enseignant, Cours, Sequence, Ressource
+    AnneeAcademique, Enseignant, Cours, Sequence, Ressource, Activite
 };
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // ══════════════════════════════════════════════════════════
         // 1. GRADES
-        // ══════════════════════════════════════════════════════════
-        // Grades officiels du cahier des charges UVCI
-        foreach ([
-            'Assistant',
-            'Maître-Assistant',
-            'Professeur',
-        ] as $g) Grade::firstOrCreate(['lib_grd' => $g]);
+        foreach (['Assistant', 'Maître-Assistant', 'Professeur'] as $g) {
+            Grade::firstOrCreate(['lib_grd' => $g]);
+        }
 
-        // ══════════════════════════════════════════════════════════
         // 2. STATUTS
-        // ══════════════════════════════════════════════════════════
         Statut::firstOrCreate(['lib_stat' => 'Permanent']);
         Statut::firstOrCreate(['lib_stat' => 'Vacataire']);
 
-        // ══════════════════════════════════════════════════════════
-        // 3. DÉPARTEMENTS UVCI
-        // ══════════════════════════════════════════════════════════
+        // 3. DEPARTEMENTS
+        $depts = [];
         foreach ([
             'Département Informatique et Sciences du Numérique',
             'Département Communication et Multimédia',
             'Département Marketing Digital',
             'Département Entrepreneuriat Numérique',
             'Département Sciences des Données',
-        ] as $d) Departement::firstOrCreate(['lib_dep' => $d]);
+        ] as $lib) {
+            $depts[] = Departement::firstOrCreate(['lib_dep' => $lib]);
+        }
 
-        // ══════════════════════════════════════════════════════════
-        // 4. SPÉCIALITÉS OFFICIELLES UVCI
-        // ══════════════════════════════════════════════════════════
+        // 4. SPECIALITES
         $specsData = [
             'DAS' => 'DAS — Développeur d\'Applications et e-Services',
             'RSI' => 'RSI — Réseaux et Sécurité Informatique',
             'BD'  => 'BD — Base de Données',
             'CM'  => 'CM — Communication et Multimédia',
             'MD'  => 'MD — Marketing Digital',
-            'MED' => 'MED — Médiation Numérique',
-            'SA'  => 'SA — Systèmes d\'Administration',
-            'GEO' => 'GEO — Géomatique et SIG',
-            'MAI' => 'Master — Intelligence Artificielle et Science des Données',
-            'MCY' => 'Master — Cybersécurité et Réseaux',
-            'MDL' => 'Master — Développement Logiciel et Mobile',
-            'MMP' => 'Master — Management de Projets Numériques',
-            'MBC' => 'Master — Blockchain et Cryptographie',
-            'AI'  => 'AI — Intelligence Artificielle',
-            'RO'  => 'RO — Robotique',
             'ENT' => 'ENT — Entrepreneuriat Digital',
         ];
         $specs = [];
@@ -67,64 +49,44 @@ class DatabaseSeeder extends Seeder
             $specs[$code] = Specialite::firstOrCreate(['lib_spec' => $lib]);
         }
 
-        // ══════════════════════════════════════════════════════════
         // 5. SEMESTRES
-        // ══════════════════════════════════════════════════════════
         $semestresData = [
             'S1L1' => 'Semestre 1 — L1',
             'S2L1' => 'Semestre 2 — L1',
             'S3L2' => 'Semestre 3 — L2',
             'S4L2' => 'Semestre 4 — L2',
-            'S5L3' => 'Semestre 5 — L3',
-            'S6L3' => 'Semestre 6 — L3',
-            'S1M1' => 'Semestre 1 — M1',
-            'S2M1' => 'Semestre 2 — M1',
-            'S3M2' => 'Semestre 3 — M2',
-            'S4M2' => 'Semestre 4 — M2',
         ];
         $sems = [];
         foreach ($semestresData as $code => $lib) {
             $sems[$code] = Semestre::firstOrCreate(['lib_sem' => $lib]);
         }
 
-        // ══════════════════════════════════════════════════════════
-        // 6. TYPES DE RESSOURCES PÉDAGOGIQUES (modèle UVCI)
-        // ══════════════════════════════════════════════════════════
+        // 6. TYPES DE RESSOURCES
         $typRessData = [
             'TXT'  => 'Contenu textuel',
             'VID'  => 'Vidéo pédagogique',
             'PDF'  => 'Document PDF',
             'QUIZ' => 'Quiz',
-            'ACT'  => 'Activité interactive',
-            'EVAL' => 'Évaluation',
-            'SG'   => 'Serious Game',
-            'SIM'  => 'Simulation',
-            'WEB'  => 'Webinaire',
         ];
         $typRess = [];
         foreach ($typRessData as $code => $lib) {
             $typRess[$code] = TypeRessource::firstOrCreate(['lib_typ_ress' => $lib]);
         }
 
-        // ══════════════════════════════════════════════════════════
-        // 7. TYPES D'ACTIVITÉS
-        // ══════════════════════════════════════════════════════════
-        TypeActivite::firstOrCreate(['id_typ_act' => 1], ['lib_typ_act' => 'Création de ressource']);
-        TypeActivite::firstOrCreate(['id_typ_act' => 2], ['lib_typ_act' => 'Mise à jour de ressource']);
+        // 7. TYPES D'ACTIVITES
+        TypeActivite::firstOrCreate(['id_typ_act' => 1], ['lib_typ_act' => 'Creation de ressource']);
+        TypeActivite::firstOrCreate(['id_typ_act' => 2], ['lib_typ_act' => 'Mise a jour de ressource']);
 
-        // ══════════════════════════════════════════════════════════
-        // 8. ANNÉES ACADÉMIQUES
-        // ══════════════════════════════════════════════════════════
+        // 8. ANNEES ACADEMIQUES
         AnneeAcademique::firstOrCreate(['lib_anee' => '2024-2025'], [
             'dte_dbut' => '2024-10-01', 'dte_fn' => '2025-07-31', 'etat_anee' => 'cloturee',
         ]);
         AnneeAcademique::firstOrCreate(['lib_anee' => '2025-2026'], [
             'dte_dbut' => '2025-10-01', 'dte_fn' => '2026-07-31', 'etat_anee' => 'en_cours',
         ]);
+        $annee = AnneeAcademique::where('etat_anee', 'en_cours')->first();
 
-        // ══════════════════════════════════════════════════════════
         // 9. UTILISATEURS
-        // ══════════════════════════════════════════════════════════
         Utilisateur::firstOrCreate(['email' => 'admin@uvci.edu.ci'], [
             'login' => 'admin', 'mdp' => Hash::make('Admin@2026'), 'role' => 'administrateur',
         ]);
@@ -132,155 +94,83 @@ class DatabaseSeeder extends Seeder
             'login' => 'secretaire', 'mdp' => Hash::make('Secret@2026'), 'role' => 'secretaire',
         ]);
 
-        $ensUsers = [
-            ['email'=>'konan.kouassi@uvci.edu.ci',   'login'=>'konan.kouassi',   'nom'=>'KOUASSI',   'pnom'=>'Konan Éric'],
-            ['email'=>'aya.coulibaly@uvci.edu.ci',    'login'=>'aya.coulibaly',   'nom'=>'COULIBALY', 'pnom'=>'Aya Marie'],
-            ['email'=>'joel.koffi@uvci.edu.ci',       'login'=>'joel.koffi',      'nom'=>'KOFFI',     'pnom'=>'Joël Arnaud'],
-            ['email'=>'brou.yao@uvci.edu.ci',         'login'=>'brou.yao',        'nom'=>'YAO',       'pnom'=>'Brou Théodore'],
-            ['email'=>'mariam.traore@uvci.edu.ci',    'login'=>'mariam.traore',   'nom'=>'TRAORÉ',    'pnom'=>'Mariam'],
+        // 5 enseignants -> 1 par departement
+        $ensUsersData = [
+            ['email'=>'konan.kouassi@uvci.edu.ci',   'login'=>'konan.kouassi',   'nom'=>'KOUASSI',   'pnom'=>'Konan Eric',    'departement'=>'Informatique'],
+            ['email'=>'aya.coulibaly@uvci.edu.ci',    'login'=>'aya.coulibaly',   'nom'=>'COULIBALY', 'pnom'=>'Aya Marie',     'departement'=>'Marketing'],
+            ['email'=>'joel.koffi@uvci.edu.ci',       'login'=>'joel.koffi',      'nom'=>'KOFFI',     'pnom'=>'Joel Arnaud',  'departement'=>'Communication'],
+            ['email'=>'brou.yao@uvci.edu.ci',         'login'=>'brou.yao',        'nom'=>'YAO',       'pnom'=>'Brou Theodore','departement'=>'Donnees'],
+            ['email'=>'mariam.traore@uvci.edu.ci',    'login'=>'mariam.traore',   'nom'=>'TRAORE',    'pnom'=>'Mariam',       'departement'=>'Entrepreneuriat'],
         ];
+
+        $gProf = Grade::where('lib_grd', 'Professeur')->first();
+        $gMA = Grade::where('lib_grd', 'Maitre-Assistant')->first();
+        $gAsst = Grade::where('lib_grd', 'Assistant')->first();
+        $sPerm = Statut::where('lib_stat', 'Permanent')->first();
+        $sVaca = Statut::where('lib_stat', 'Vacataire')->first();
+
         $enseignantUsers = [];
-        foreach ($ensUsers as $eu) {
+        foreach ($ensUsersData as $eu) {
             $enseignantUsers[] = Utilisateur::firstOrCreate(
                 ['email' => $eu['email']],
                 ['login' => $eu['login'], 'mdp' => Hash::make('Enseignant@2026'), 'role' => 'enseignant']
             );
         }
 
-        // ══════════════════════════════════════════════════════════
-        // 10. ENSEIGNANTS
-        // ══════════════════════════════════════════════════════════
-        $gMC = Grade::where('lib_grd','Professeur')->first();
-        $gMA = Grade::where('lib_grd','Maître-Assistant')->first();
-        $gAS = Grade::where('lib_grd','Assistant')->first();
-        $gCC = Grade::where('lib_grd','Assistant')->first();
-        $sP  = Statut::where('lib_stat','Permanent')->first();
-        $sV  = Statut::where('lib_stat','Vacataire')->first();
-        $dep = Departement::where('lib_dep','like','%Informatique%')->first();
-
         $enseignantsData = [
-            ['nom'=>'KOUASSI',  'pnom'=>'Konan Éric',    'tel'=>'0701020304','tx_horaire'=>7500,'id_grd'=>$gMC->id_grd,'id_stat'=>$sP->id_stat,'id_dep'=>$dep->id_dep,'id_util'=>$enseignantUsers[0]->id_util],
-            ['nom'=>'COULIBALY','pnom'=>'Aya Marie',      'tel'=>'0505060708','tx_horaire'=>5000,'id_grd'=>$gMA->id_grd,'id_stat'=>$sP->id_stat,'id_dep'=>$dep->id_dep,'id_util'=>$enseignantUsers[1]->id_util],
-            ['nom'=>'KOFFI',    'pnom'=>'Joël Arnaud',   'tel'=>'0709101112','tx_horaire'=>4000,'id_grd'=>$gAS->id_grd,'id_stat'=>$sV->id_stat,'id_dep'=>$dep->id_dep,'id_util'=>$enseignantUsers[2]->id_util],
-            ['nom'=>'YAO',      'pnom'=>'Brou Théodore', 'tel'=>'0712131415','tx_horaire'=>4500,'id_grd'=>$gCC->id_grd,'id_stat'=>$sV->id_stat,'id_dep'=>$dep->id_dep,'id_util'=>$enseignantUsers[3]->id_util],
-            ['nom'=>'TRAORÉ',   'pnom'=>'Mariam',        'tel'=>'0716171819','tx_horaire'=>6000,'id_grd'=>$gMA->id_grd,'id_stat'=>$sP->id_stat,'id_dep'=>$dep->id_dep,'id_util'=>$enseignantUsers[4]->id_util],
+            ['nom'=>'KOUASSI', 'pnom'=>'Konan Eric', 'tel'=>'0701020304', 'tx_horaire'=>7500, 'id_grd'=>$gProf->id_grd, 'id_stat'=>$sPerm->id_stat, 'departement_nom'=>'Département Informatique et Sciences du Numérique', 'id_util'=>$enseignantUsers[0]->id_util],
+            ['nom'=>'COULIBALY', 'pnom'=>'Aya Marie', 'tel'=>'0505060708', 'tx_horaire'=>5000, 'id_grd'=>$gMA->id_grd, 'id_stat'=>$sPerm->id_stat, 'departement_nom'=>'Département Marketing Digital', 'id_util'=>$enseignantUsers[1]->id_util],
+            ['nom'=>'KOFFI', 'pnom'=>'Joel Arnaud', 'tel'=>'0709101112', 'tx_horaire'=>4000, 'id_grd'=>$gAsst->id_grd, 'id_stat'=>$sVaca->id_stat, 'departement_nom'=>'Département Communication et Multimédia', 'id_util'=>$enseignantUsers[2]->id_util],
+            ['nom'=>'YAO', 'pnom'=>'Brou Theodore', 'tel'=>'0712131415', 'tx_horaire'=>4500, 'id_grd'=>$gAsst->id_grd, 'id_stat'=>$sVaca->id_stat, 'departement_nom'=>'Département Sciences des Données', 'id_util'=>$enseignantUsers[3]->id_util],
+            ['nom'=>'TRAORE', 'pnom'=>'Mariam', 'tel'=>'0716171819', 'tx_horaire'=>6000, 'id_grd'=>$gMA->id_grd, 'id_stat'=>$sPerm->id_stat, 'departement_nom'=>'Département Entrepreneuriat Numérique', 'id_util'=>$enseignantUsers[4]->id_util],
         ];
+
         $enseignants = [];
         foreach ($enseignantsData as $ed) {
-            $enseignants[] = Enseignant::firstOrCreate(['id_util' => $ed['id_util']], $ed);
+            $dep = Departement::where('lib_dep', $ed['departement_nom'])->first();
+            if ($dep) {
+                $enseignants[] = Enseignant::firstOrCreate(
+                    ['id_util' => $ed['id_util']],
+                    [
+                        'nom' => $ed['nom'],
+                        'pnom' => $ed['pnom'],
+                        'tel' => $ed['tel'],
+                        'tx_horaire' => $ed['tx_horaire'],
+                        'id_grd' => $ed['id_grd'],
+                        'id_stat' => $ed['id_stat'],
+                        'id_dep' => $dep->id_dep,
+                        'id_util' => $ed['id_util'],
+                    ]
+                );
+            }
         }
 
-        // ══════════════════════════════════════════════════════════
-        // 11. COURS + SÉQUENCES + RESSOURCES
-        //     Chaîne complète : Cours → Séquences → Ressources
-        // ══════════════════════════════════════════════════════════
-
+        // 10. COURS + SEQUENCES + RESSOURCES
         $coursData = [
-            // DAS — Semestre 1 L1
             [
                 'intit'=>'Introduction à la Programmation','filre'=>'DAS','niv'=>'L1',
                 'nbh_bse'=>10,'nbr_crdt'=>2,'nbr_squce'=>40,
                 'id_sem'=>$sems['S1L1']->id_sem,'id_spec'=>$specs['DAS']->id_spec,
                 'sequences' => [
-                    ['ttre'=>'Bases du langage Python','desc'=>'Variables, types, opérateurs'],
-                    ['ttre'=>'Structures de contrôle','desc'=>'If, while, for'],
-                    ['ttre'=>'Fonctions et modules','desc'=>'Définition et appel de fonctions'],
-                    ['ttre'=>'Manipulation de fichiers','desc'=>'Lecture et écriture de fichiers'],
+                    ['ttre'=>'Bases du langage Python','desc'=>'Variables, types, operateurs'],
+                    ['ttre'=>'Structures de controle','desc'=>'If, while, for'],
                 ],
             ],
-            // DAS — Semestre 1 L1
             [
-                'intit'=>'Algorithmique et Structures de Données','filre'=>'DAS','niv'=>'L1',
-                'nbh_bse'=>10,'nbr_crdt'=>3,'nbr_squce'=>40,
-                'id_sem'=>$sems['S1L1']->id_sem,'id_spec'=>$specs['DAS']->id_spec,
-                'sequences' => [
-                    ['ttre'=>'Notions d\'algorithme','desc'=>'Définition et propriétés'],
-                    ['ttre'=>'Tableaux et listes','desc'=>'Structures de données linéaires'],
-                    ['ttre'=>'Tris et recherches','desc'=>'Algorithmes classiques de tri'],
-                    ['ttre'=>'Arbres et graphes','desc'=>'Structures arborescentes'],
-                ],
-            ],
-            // DAS — Semestre 3 L2
-            [
-                'intit'=>'Développement Web Front-End','filre'=>'DAS','niv'=>'L2',
+                'intit'=>'Marketing Digital','filre'=>'MD','niv'=>'L2',
                 'nbh_bse'=>20,'nbr_crdt'=>3,'nbr_squce'=>80,
-                'id_sem'=>$sems['S3L2']->id_sem,'id_spec'=>$specs['DAS']->id_spec,
+                'id_sem'=>$sems['S3L2']->id_sem,'id_spec'=>$specs['MD']->id_spec,
                 'sequences' => [
-                    ['ttre'=>'HTML5 et sémantique','desc'=>'Structure des pages web'],
-                    ['ttre'=>'CSS3 et Flexbox/Grid','desc'=>'Mise en forme et layouts'],
-                    ['ttre'=>'JavaScript ES6+','desc'=>'Programmation côté client'],
-                    ['ttre'=>'Framework React.js','desc'=>'Composants et état'],
-                    ['ttre'=>'Accessibilité et SEO','desc'=>'Bonnes pratiques web'],
-                ],
-            ],
-            // RSI — Semestre 3 L2
-            [
-                'intit'=>'Sécurité des Réseaux Informatiques','filre'=>'RSI','niv'=>'L2',
-                'nbh_bse'=>20,'nbr_crdt'=>3,'nbr_squce'=>80,
-                'id_sem'=>$sems['S3L2']->id_sem,'id_spec'=>$specs['RSI']->id_spec,
-                'sequences' => [
-                    ['ttre'=>'Cryptographie et chiffrement','desc'=>'Algorithmes symétriques et asymétriques'],
-                    ['ttre'=>'Protocoles sécurisés','desc'=>'TLS, HTTPS, SSH'],
-                    ['ttre'=>'Firewalls et VPN','desc'=>'Sécurisation du réseau'],
-                    ['ttre'=>'Détection d\'intrusion','desc'=>'IDS et IPS'],
-                ],
-            ],
-            // RSI — Semestre 5 L3
-            [
-                'intit'=>'Administration Systèmes Linux','filre'=>'RSI','niv'=>'L3',
-                'nbh_bse'=>20,'nbr_crdt'=>4,'nbr_squce'=>80,
-                'id_sem'=>$sems['S5L3']->id_sem,'id_spec'=>$specs['RSI']->id_spec,
-                'sequences' => [
-                    ['ttre'=>'Installation et configuration Linux','desc'=>'Distributions et partitionnement'],
-                    ['ttre'=>'Gestion des utilisateurs','desc'=>'Droits et permissions'],
-                    ['ttre'=>'Services réseau','desc'=>'DNS, DHCP, NFS'],
-                    ['ttre'=>'Supervision et monitoring','desc'=>'Nagios, Zabbix'],
-                ],
-            ],
-            // BD — Semestre 3 L2
-            [
-                'intit'=>'Bases de Données Relationnelles','filre'=>'BD','niv'=>'L2',
-                'nbh_bse'=>10,'nbr_crdt'=>3,'nbr_squce'=>40,
-                'id_sem'=>$sems['S3L2']->id_sem,'id_spec'=>$specs['BD']->id_spec,
-                'sequences' => [
-                    ['ttre'=>'Modèle Entité-Association','desc'=>'Conception et MCD'],
-                    ['ttre'=>'SQL — Requêtes de base','desc'=>'SELECT, INSERT, UPDATE, DELETE'],
-                    ['ttre'=>'SQL — Jointures et sous-requêtes','desc'=>'Requêtes avancées'],
-                    ['ttre'=>'Transactions et concurrence','desc'=>'ACID et verrous'],
-                ],
-            ],
-            // BD — Semestre 5 L3
-            [
-                'intit'=>'Administration des Bases de Données','filre'=>'BD','niv'=>'L3',
-                'nbh_bse'=>20,'nbr_crdt'=>4,'nbr_squce'=>80,
-                'id_sem'=>$sems['S5L3']->id_sem,'id_spec'=>$specs['BD']->id_spec,
-                'sequences' => [
-                    ['ttre'=>'Installation MySQL / PostgreSQL','desc'=>'Configuration serveur'],
-                    ['ttre'=>'Sauvegarde et restauration','desc'=>'Stratégies de backup'],
-                    ['ttre'=>'Optimisation et indexation','desc'=>'EXPLAIN et tuning'],
-                    ['ttre'=>'Haute disponibilité','desc'=>'Réplication et clustering'],
-                ],
-            ],
-            // MD — Semestre 1 M1
-            [
-                'intit'=>'Marketing Digital et e-Commerce','filre'=>'MD','niv'=>'M1',
-                'nbh_bse'=>20,'nbr_crdt'=>4,'nbr_squce'=>80,
-                'id_sem'=>$sems['S1M1']->id_sem,'id_spec'=>$specs['MD']->id_spec,
-                'sequences' => [
-                    ['ttre'=>'Stratégie digitale','desc'=>'Positionnement et cibles'],
-                    ['ttre'=>'SEO et référencement','desc'=>'Optimisation pour les moteurs'],
-                    ['ttre'=>'Réseaux sociaux','desc'=>'Community management'],
-                    ['ttre'=>'Google Analytics','desc'=>'Mesure et analytics'],
+                    ['ttre'=>'Strategie digitale','desc'=>'Positionnement et cibles'],
+                    ['ttre'=>'SEO et referencement','desc'=>'Optimisation pour les moteurs'],
                 ],
             ],
         ];
 
-        // Niveaux de complexité à alterner : 1, 2, 3
-        // Types de ressources à alterner
-        $typRessKeys = ['TXT','VID','QUIZ','ACT','EVAL','PDF'];
+        $typRessKeys = ['TXT','VID','QUIZ','PDF'];
 
         foreach ($coursData as $cd) {
-            $seqs     = $cd['sequences'];
+            $seqs = $cd['sequences'];
             unset($cd['sequences']);
 
             $cours = Cours::firstOrCreate(
@@ -299,18 +189,9 @@ class DatabaseSeeder extends Seeder
                     ]
                 );
 
-                // 2 à 3 ressources par séquence avec des niveaux variés
-                $ressourcesParSeq = [
-                    // [niv_comp, type_key]
-                    [1, $typRessKeys[$idx % count($typRessKeys)]],
-                    [2, 'QUIZ'],
-                    [3, 'ACT'],
-                ];
-                // Pour les premières séquences mettre 2 ressources, les suivantes 3
-                $nbRess = ($idx < 2) ? 2 : 3;
-
-                for ($r = 0; $r < $nbRess; $r++) {
-                    [$niv, $typKey] = $ressourcesParSeq[$r];
+                for ($r = 0; $r < 2; $r++) {
+                    $niv = ($r == 0) ? 1 : 2;
+                    $typKey = $typRessKeys[$idx % count($typRessKeys)];
                     Ressource::firstOrCreate(
                         ['id_seq' => $seq->id_seq, 'niv_comp' => $niv, 'id_typ_ress' => $typRess[$typKey]->id_typ_ress],
                         [
@@ -325,25 +206,96 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // ══════════════════════════════════════════════════════════
-        // RÉSUMÉ FINAL
-        // ══════════════════════════════════════════════════════════
+        // 11. ACTIVITES DE TEST (2 cas seulement)
         $this->command->info('');
-        $this->command->info('✅  Données UVCI insérées avec succès !');
+        $this->command->info('Creation des activites de test...');
+        
+        $typeCreation = TypeActivite::find(1);
+        $typeMaj = TypeActivite::find(2);
+        $ressources = Ressource::all();
+        $ensInfo = $enseignants[0];
+        $ensMarketing = $enseignants[1];
+        $ensComm = $enseignants[2];
+        $ensData = $enseignants[3];
+        $ensEntre = $enseignants[4];
+
+        // CAS 1: Activites normales (3 par enseignant)
+        $this->command->info('Cas 1: Activites normales (3 par enseignant)');
+        foreach ($enseignants as $ens) {
+            for ($i = 1; $i <= 3; $i++) {
+                $ressource = $ressources->random();
+                Activite::create([
+                    'date_act' => now()->subDays(rand(1, 60)),
+                    'v_hor' => 10 + ($i * 2),
+                    'observation' => 'Activite normale ' . $i . ' - ' . $ens->nom_complet,
+                    'id_ens' => $ens->id_ens,
+                    'id_anee' => $annee->id_anee,
+                    'id_typ_act' => ($i % 2 == 0) ? $typeMaj->id_typ_act : $typeCreation->id_typ_act,
+                    'id_ress' => $ressource->id_ress,
+                    'est_valide' => true,
+                    'date_validation' => now(),
+                    'valide_par' => 1,
+                ]);
+            }
+        }
+
+        // CAS 2: Quelques activites en attente (2 par enseignant)
+        $this->command->info('Cas 2: Activites en attente de validation (2 par enseignant)');
+        foreach ($enseignants as $ens) {
+            for ($i = 1; $i <= 2; $i++) {
+                $ressource = $ressources->random();
+                Activite::create([
+                    'date_act' => now()->subDays(rand(1, 30)),
+                    'v_hor' => 8,
+                    'observation' => 'Activite en attente ' . $i . ' - ' . $ens->nom_complet,
+                    'id_ens' => $ens->id_ens,
+                    'id_anee' => $annee->id_anee,
+                    'id_typ_act' => $typeCreation->id_typ_act,
+                    'id_ress' => $ressource->id_ress,
+                    'est_valide' => false,
+                    'date_validation' => null,
+                    'valide_par' => null,
+                ]);
+            }
+        }
+
+        // Ajout d'une activite avec depassement pour l'enseignant Informatique
+        $this->command->info('Cas special: Depassement pour enseignant Informatique');
+        $ressource = $ressources->first();
+        Activite::create([
+            'date_act' => now()->subDays(10),
+            'v_hor' => 150,
+            'observation' => 'GROSSE ACTIVITE - Depassement de seuil',
+            'id_ens' => $ensInfo->id_ens,
+            'id_anee' => $annee->id_anee,
+            'id_typ_act' => $typeCreation->id_typ_act,
+            'id_ress' => $ressource->id_ress,
+            'est_valide' => true,
+            'date_validation' => now(),
+            'valide_par' => 1,
+        ]);
+
+        // RESUME FINAL
+        $totalActivites = Activite::count();
+        $totalValidees = Activite::where('est_valide', true)->count();
+        $totalHeures = Activite::where('est_valide', true)->sum('v_hor');
+        
         $this->command->info('');
-        $this->command->info('   Spécialités    : ' . \App\Models\Specialite::count());
-        $this->command->info('   Semestres      : ' . \App\Models\Semestre::count());
-        $this->command->info('   Cours          : ' . \App\Models\Cours::count());
-        $this->command->info('   Séquences      : ' . \App\Models\Sequence::count());
-        $this->command->info('   Ressources     : ' . \App\Models\Ressource::count());
-        $this->command->info('   Enseignants    : ' . \App\Models\Enseignant::count());
+        $this->command->info('Donnees UVCI inserees avec succes !');
         $this->command->info('');
-        $this->command->info('══════════ COMPTES DE TEST ══════════');
+        $this->command->info('   Departements   : ' . Departement::count());
+        $this->command->info('   Enseignants    : ' . Enseignant::count());
+        $this->command->info('   Cours          : ' . Cours::count());
+        $this->command->info('   Sequences      : ' . Sequence::count());
+        $this->command->info('   Ressources     : ' . Ressource::count());
+        $this->command->info('   Activites      : ' . $totalActivites . ' (validees: ' . $totalValidees . ', ' . $totalHeures . 'h)');
+        $this->command->info('');
+        $this->command->info('========== COMPTES DE TEST ==========');
         $this->command->info('Admin       : admin@uvci.edu.ci         | Admin@2026');
-        $this->command->info('Secrétaire  : secretaire@uvci.edu.ci    | Secret@2026');
-        $this->command->info('Enseignant  : konan.kouassi@uvci.edu.ci | Enseignant@2026');
+        $this->command->info('Secretaire  : secretaire@uvci.edu.ci    | Secret@2026');
+        $this->command->info('Enseignant  : konan.kouassi@uvci.edu.ci | Enseignant@2026 (DEPASSEMENT)');
         $this->command->info('Enseignant  : aya.coulibaly@uvci.edu.ci | Enseignant@2026');
         $this->command->info('Enseignant  : joel.koffi@uvci.edu.ci    | Enseignant@2026');
-        $this->command->info('════════════════════════════════════');
+        $this->command->info('=====================================');
     }
 }

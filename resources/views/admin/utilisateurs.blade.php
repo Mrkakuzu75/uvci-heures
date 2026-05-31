@@ -1,73 +1,94 @@
-@extends('layouts.app')
-@section('title','Utilisateurs')
-@section('sidebar-role','Administrateur')
-@section('page-title','Utilisateurs')
-@section('page-subtitle','Gestion des comptes d\'accès')
-
-@section('sidebar-nav')
-  <x-nav-item route="admin.dashboard"    label="Tableau de bord"    icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-  <x-nav-item route="admin.utilisateurs" label="Utilisateurs"       icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-  <x-nav-item route="admin.annees"       label="Années académiques" icon="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-  <x-nav-item route="admin.parametres"    label="Paramètres calcul"  icon="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-  <x-nav-item route="admin.taux-horaires"  label="Taux horaires"      icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-@endsection
-
-@section('topbar-actions')
-  <a href="{{ route('admin.utilisateurs.create') }}" class="btn btn-navy">
-    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-    <span class="btn-text">Nouveau</span>
-  </a>
-@endsection
+@extends('layouts.admin')
+@section('title', 'Utilisateurs')
 
 @section('content')
-<div class="card">
-  <div class="card-header">
-    <h3>{{ $utilisateurs->total() }} compte(s)</h3>
-  </div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Utilisateur</th>
-          <th>Rôle</th>
-          <th class="hide-mobile">Créé le</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @php $avCls=['administrateur'=>'av-green','secretaire'=>'av-blue','enseignant'=>'av-purple']; @endphp
-        @php $bdgCls=['administrateur'=>'badge-green','secretaire'=>'badge-blue','enseignant'=>'badge-purple']; @endphp
-        @forelse($utilisateurs as $u)
-        <tr>
-          <td>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div class="avatar {{ $avCls[$u->role]??'av-teal' }}">{{ strtoupper(substr($u->login,0,2)) }}</div>
-              <div>
-                <div style="font-weight:500;">{{ $u->login }}</div>
-                <div style="font-size:11px;color:var(--muted);">{{ $u->email }}</div>
-              </div>
-            </div>
-          </td>
-          <td><span class="{{ $bdgCls[$u->role]??'badge-gray' }}">{{ $u->role }}</span></td>
-          <td class="hide-mobile" style="color:var(--muted);">{{ $u->created_at->format('d/m/Y') }}</td>
-          <td>
-            <div style="display:flex;gap:6px;">
-              <a href="{{ route('admin.utilisateurs.edit',$u) }}" class="btn btn-outline btn-sm">Modifier</a>
-              <form method="POST" action="{{ route('admin.utilisateurs.destroy',$u) }}" onsubmit="return confirm('Supprimer ce compte ?')">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn btn-danger btn-sm">Suppr.</button>
-              </form>
-            </div>
-          </td>
-        </tr>
-        @empty
-        <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--muted);">Aucun utilisateur</td></tr>
-        @endforelse
-      </tbody>
-    </table>
-  </div>
-  @if($utilisateurs->hasPages())
-  <div style="padding:14px 20px;border-top:1px solid var(--border);">{{ $utilisateurs->links() }}</div>
-  @endif
+<div class="space-y-6">
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h1 class="text-2xl font-heading font-bold text-gray-900">Utilisateurs</h1>
+            <p class="text-gray-500 mt-1">Gestion des comptes utilisateurs</p>
+        </div>
+        <a href="{{ route('admin.utilisateurs.create') }}" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Ajouter un utilisateur
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="text-gray-800">Liste des utilisateurs</h3>
+            <span class="text-xs text-gray-400">{{ $utilisateurs->total() }} utilisateur(s)</span>
+        </div>
+        <div class="table-container">
+            <table class="min-w-full">
+                <thead>
+                    <tr>
+                        <th>Login</th>
+                        <th>Email</th>
+                        <th>Rôle</th>
+                        <th>Date création</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($utilisateurs as $u)
+                    <tr class="hover:bg-gray-50 transition">
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-medium text-sm">
+                                    {{ strtoupper(substr($u->login, 0, 1)) }}
+                                </div>
+                                <span class="font-medium text-gray-800">{{ $u->login }}</span>
+                            </div>
+                        </td>
+                        <td class="text-gray-600">{{ $u->email }}</td>
+                        <td>
+                            @if($u->role === 'administrateur')
+                                <span class="badge badge-purple">Administrateur</span>
+                            @elseif($u->role === 'secretaire')
+                                <span class="badge badge-info">Secrétaire</span>
+                            @else
+                                <span class="badge badge-success">Enseignant</span>
+                            @endif
+                        </td>
+                        <td class="text-gray-500 text-sm">{{ $u->created_at ? $u->created_at->format('d/m/Y H:i') : '—' }}</td>
+                        <td class="text-right">
+                            <div class="flex gap-2 justify-end">
+                                <a href="{{ route('admin.utilisateurs.edit', $u) }}" 
+                                   class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                    Modifier
+                                </a>
+                                <form method="POST" action="{{ route('admin.utilisateurs.destroy', $u) }}" 
+                                      onsubmit="return confirm('Supprimer cet utilisateur ?')" class="inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                        Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-gray-400">Aucun utilisateur</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if($utilisateurs->hasPages())
+        <div class="px-5 py-3.5 border-t border-gray-100">
+            {{ $utilisateurs->links() }}
+        </div>
+        @endif
+    </div>
 </div>
 @endsection

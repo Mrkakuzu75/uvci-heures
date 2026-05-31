@@ -13,6 +13,7 @@ class StatistiquesController extends Controller
         // 1. Répartition par type d'activité
         $types = Activite::query()
             ->where('id_anee', $annee->id_anee)
+            ->where('est_valide', true)
             ->join('types_activites', 'activites.id_typ_act', '=', 'types_activites.id_typ_act')
             ->selectRaw('types_activites.lib_typ_act,
                          COUNT(*) as nb_activites,
@@ -23,6 +24,7 @@ class StatistiquesController extends Controller
         // 2. Répartition par niveau de complexité
         $niveaux = Activite::query()
             ->where('id_anee', $annee->id_anee)
+            ->where('est_valide', true)
             ->join('ressources', 'activites.id_ress', '=', 'ressources.id_ress')
             ->selectRaw('ressources.niv_comp,
                          COUNT(*) as nb_activites,
@@ -34,6 +36,7 @@ class StatistiquesController extends Controller
         // 3. Répartition par type de ressource
         $ressources = Activite::query()
             ->where('id_anee', $annee->id_anee)
+            ->where('est_valide', true)
             ->join('ressources',       'activites.id_ress',      '=', 'ressources.id_ress')
             ->join('types_ressources', 'ressources.id_typ_ress', '=', 'types_ressources.id_typ_ress')
             ->selectRaw('types_ressources.lib_typ_ress,
@@ -62,7 +65,7 @@ class StatistiquesController extends Controller
         $seuil   = $config['seuil_heures_complementaires'] ?? 192;
 
         $depasses = Enseignant::with(['grade','statut','departement'])
-            ->withSum(['activites as volume_horaire' => fn($q) => $q->where('id_anee', $annee->id_anee)], 'v_hor')
+            ->withSum(['activites as volume_horaire' => fn($q) => $q->where('id_anee', $annee->id_anee)->where('est_valide', true)], 'v_hor')
             ->having('volume_horaire', '>', $seuil)
             ->orderByDesc('volume_horaire')
             ->get();
@@ -73,7 +76,7 @@ class StatistiquesController extends Controller
         $mensuelles = collect(range(1,12))->map(fn($m) => [
             'mois'         => $m,
             'nom'          => $moisNoms[$m-1],
-            'nb_activites' => Activite::where('id_anee', $annee->id_anee)->whereMonth('date_act',$m)->count(),
+            'nb_activites' => Activite::where('id_anee', $annee->id_anee)->where('est_valide', true)->whereMonth('date_act',$m)->count(),
             'volume'       => round((float) Activite::where('id_anee', $annee->id_anee)->whereMonth('date_act',$m)->sum('v_hor'), 2),
         ]);
 

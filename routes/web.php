@@ -9,7 +9,6 @@ use App\Http\Controllers\{
 };
 
 // ── Authentification ──────────────────────────────────────────
-Route::get('/',       [AuthController::class, 'showLogin'])->name('login');
 Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout',[AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -38,6 +37,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:administrateur'
 // ── Secrétaire ────────────────────────────────────────────────
 Route::prefix('secretaire')->name('secretaire.')->middleware(['auth','role:secretaire'])->group(function () {
     Route::get('/dashboard',                              [SecretaireController::class,'dashboard'])->name('dashboard');
+    
     // Enseignants — routes statiques AVANT {enseignant}
     Route::get('/enseignants/export-excel',               [ExportEnseignantsController::class,'excel'])->name('enseignants.export-excel');
     Route::get('/enseignants',                            [SecretaireController::class,'enseignants'])->name('enseignants');
@@ -55,6 +55,7 @@ Route::prefix('secretaire')->name('secretaire.')->middleware(['auth','role:secre
     Route::delete('/sequences/{sequence}',                [SecretaireController::class,'destroySequence'])->name('sequences.destroy');
     // Ressources
     Route::get('/sequences/{sequence}/ressources',        [SecretaireController::class,'ressources'])->name('ressources');
+    Route::post('/sequences/{sequence}/ressources',       [SecretaireController::class, 'storeRessource'])->name('ressources.store');
     Route::post('/sequences/{sequence}/ressources',       [SecretaireController::class,'storeRessource'])->name('ressources.store');
     Route::delete('/ressources/{ressource}',              [SecretaireController::class,'destroyRessource'])->name('ressources.destroy');
     // Activités
@@ -70,6 +71,8 @@ Route::prefix('secretaire')->name('secretaire.')->middleware(['auth','role:secre
     Route::get('/paiements/excel-global',                 [PaiementController::class,'excelEtatGlobal'])->name('paiements.excel-global');
     Route::get('/paiements/fiche/{enseignant}',           [PaiementController::class,'ficheIndividuelle'])->name('paiements.fiche');
     Route::get('/paiements/excel-fiche/{enseignant}',     [PaiementController::class,'excelFicheIndividuelle'])->name('paiements.excel-fiche');
+    // Validation des activités
+    Route::patch('/activites/{activite}/valider',         [SecretaireController::class, 'validerActivite'])->name('activites.valider');
 });
 
 // ── Enseignant ────────────────────────────────────────────────
