@@ -4,6 +4,7 @@ services:
     runtime: image
     repo: https://github.com/Mrkakuzu75/uvci-heures
     plan: free
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: APP_ENV
         value: production
@@ -14,14 +15,14 @@ services:
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
-        value: sql.freedb.tech
+        value: uvcu-mysql-uvci-heures.d.aivencloud.com
       - key: DB_PORT
-        value: 3306
+        value: 13893
       - key: DB_DATABASE
-        value: freedb_uvci_heures
+        value: defaultdb
       - key: DB_USERNAME
-        value: freedb_uvci_user
+        value: avnadmin
       - key: DB_PASSWORD
-        value: ton_mot_de_passe
-      - key: SESSION_DRIVER
-        value: database
+        value: TON_MOT_DE_PASSE_AIVEN
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/ssl/certs/ca-certificates.crt
